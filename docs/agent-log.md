@@ -165,3 +165,9 @@
   - 查無結果時提供建議關鍵字；載入中顯示骨架卡，失敗時可重試。
   - 全站開啟 `withInMemoryScrolling({ scrollPositionRestoration: 'enabled' })`：修正從首頁底部點進商品頁時仍停在原捲動位置的問題，上一頁則回到原位置。
 - **驗證**：lint 通過；69 個測試通過（新增 search params 4、搜尋頁 6）；production build 無 budget 警告。
+
+### 第 17 輪：README
+
+- **Agent 提案**：在剩約 38 分鐘時先寫 README，確保可交付；之後的時間建議做 observability，而非 header 即時搜尋建議，理由是考題加分項明確列出 Validation / Observability。人類回覆「ok go」。
+- **Agent 產出**：英文 README，包含：非官方聲明、啟動指令（含 `?mockError=1`）、與真站逐區塊對照表、架構與依賴方向、Mermaid 資料流圖、ADR 索引、品質關卡與各模組測試數量、Agent 協作方式（含測試抓到的 Agent 錯誤與人類主導的方向調整）、刻意不做與後續方向。
+- **做法**：測試數量與 commit 歷史先從實際執行結果取得（18 個測試檔、69 個測試、10 個 commit），不憑記憶撰寫。
