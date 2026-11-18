@@ -204,3 +204,13 @@
   - ADR 0001、0002、0004、0007：補記實作結果，修正與實作不符的描述（未使用的 Material 元件、`routerLink` 而非 `router.navigate`、section 為攤平物件、未知 section 在正式環境不會記錄、搜尋建議未實作）。
   - `plan.md`：保留原始計劃以呈現演變，新增「實作結果與計劃的差異」與取自 git log 的實際時間軸。
 - **核對無誤的項目**：測試總數與各模組數字、測試檔數、初始傳輸約 86 kB、Node 版本、真站對照表各列，以及 ADR 0003、0005、0006、0008。
+
+### 第 21 輪：部署設定（時限後）
+
+- **時間**：本輪於 16:55 進行，已超過第一個 commit（14:53）起算的 120 分鐘，屬時限後的部署設定，未新增任何功能。
+- **人類提問**：是否部署到 Vercel 讓面試官直接瀏覽？能否只讓知道連結的人看到？
+- **Agent 建議**：部署，讓面試官不必 clone 與安裝即可比對真站。查證 Vercel 文件後說明：Hobby 方案可用 Vercel Authentication 保護包含 production 在內的所有部署，並以一條 Shareable Link 讓外部人員透過網址參數存取；密碼保護在 Hobby 不提供。文件未明確說明 Shareable Link 是否涵蓋 production，因此請人類以無痕視窗分別驗證「不帶參數被擋、帶參數可看」。建議連結放在提交信件而非 README，人類決定 README 不另加說明。
+- **Agent 產出**：
+  - `vercel.json`：所有路徑 rewrite 到 `index.html`，否則直接開啟或重新整理 `/goods/...`、`/search`、`/cart` 會得到 404；實際存在的靜態檔仍會優先回傳。
+  - `index.html`：加上 `noindex, nofollow`。網站外觀與真實品牌相似，即使已有存取保護，仍避免被搜尋引擎收錄。
+- **人類待辦**：在 Vercel 匯入 repo 並部署、開啟 Deployment Protection（All Deployments）、建立 Shareable Link 並驗證。
