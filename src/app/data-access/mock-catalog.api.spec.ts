@@ -8,10 +8,12 @@ import { MOCK_CATALOG_CONFIG, MOCK_FIXTURES_LOADER, MockCatalogApi } from './moc
 
 describe('MockCatalogApi', () => {
   let shouldFail = false;
+  let sink: ReturnType<typeof vi.fn>;
   let api: CatalogApi;
 
   beforeEach(() => {
     shouldFail = false;
+    sink = vi.fn();
     TestBed.configureTestingModule({
       providers: [
         { provide: CatalogApi, useClass: MockCatalogApi },
@@ -19,6 +21,7 @@ describe('MockCatalogApi', () => {
           provide: MOCK_CATALOG_CONFIG,
           useValue: { latencyMs: [0, 0], shouldFail: () => shouldFail },
         },
+        { provide: LOG_SINK, useValue: sink },
       ],
     });
     api = TestBed.inject(CatalogApi);
@@ -74,6 +77,25 @@ describe('MockCatalogApi', () => {
     expect(first.total).toBe(60);
     expect(last.items).toHaveLength(5);
     expect(new Set([...first.items, ...last.items].map((product) => product.id)).size).toBe(15);
+  });
+
+  it('reports failed requests to the log sink with the operation name', async () => {
+    shouldFail = true;
+    await expect(firstValueFrom(api.getCategories())).rejects.toBeInstanceOf(CatalogNetworkError);
+    expect(sink).toHaveBeenCalledWith(
+      expect.objectContaining({
+        level: 'warn',
+        name: 'CatalogRequestFailed',
+        context: { operation: 'getCategories', error: 'CatalogNetworkError' },
+      }),
+    );
+  });
+
+  it('does not report "not found", which is an expected outcome', async () => {
+    await expect(firstValueFrom(api.getProduct('missing'))).rejects.toBeInstanceOf(
+      ProductNotFoundError,
+    );
+    expect(sink).not.toHaveBeenCalled();
   });
 
   it('fails with CatalogNetworkError when failure is simulated', async () => {

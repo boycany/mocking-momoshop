@@ -185,3 +185,11 @@
 - **Agent 自我修正**：新的「點擊發出 opened」測試點了 `routerLink`，在空路由下導頁失敗，錯誤在測試結束後才非同步拋出，造成 unhandled error。屬於測試寫法問題，改為在該測試中 stub `navigateByUrl`。
 - **驗證**：lint 通過；77 個測試通過、無 unhandled error（新增錯誤處理 3、驗證 2、mock 剔除壞資料 1、商品卡事件 2，商品頁測試加上 `add_to_cart` 斷言）。README 新增 Observability 章節並更新測試數量與後續方向。
 - **Agent 自我修正（文件）**：更新 README 時，兩處 regex 取代因 Prettier 已替表格補上對齊空格而沒有命中，且那兩處未檢查取代次數，導致 ADR 0008 列與三個模組的測試數量沒有更新。事後以 grep 核對時發現，改為逐列解析表格儲存格並斷言每一處都已修改，最後驗證表格加總等於實際的 77 個測試。這是同類問題的第三次（第 7、12 輪），教訓是：每一處自動修改都必須斷言有命中。
+
+### 第 19 輪：已處理的 API 失敗也寫進 LOG_SINK
+
+- **人類提問**：「要怎麼驗證 Observability？如何產生錯誤讓它記錄到 LOG_SINK？」
+- **Agent 回答時發現缺口**：`?mockError=1` 造成的 API 錯誤被 `rxResource` 接住、轉成畫面上的錯誤與重試，從未成為未處理錯誤，因此不會經過 `GlobalErrorHandler`。結果是使用者看得到錯誤，維運端卻沒有任何紀錄。Agent 主動指出並提案補上，人類回覆「ok go」。
+- **Agent 產出**：`MockCatalogApi.respond()` 多帶 API 名稱參數，以 `tap({ error })` 統一回報失敗為 `CatalogRequestFailed`（附 `operation` 與錯誤類型）；改一處即涵蓋全部 6 支 API。`ProductNotFoundError` 屬預期中的業務結果（例如舊連結），刻意不記錄以免雜訊蓋過真正的故障。錯誤照常往下傳，畫面行為不變。
+- **做法改進**：吸取第 18 輪的教訓，這次每一處自動修改都加上斷言。測試檔的修改因 Prettier 排版不同而在斷言處停下，且因為檔案是全部比對成功後才寫入，沒有留下半套修改；改用不受排版影響的錨點後重新套用。
+- **驗證**：lint 通過；79 個測試通過（新增：失敗請求會帶 API 名稱寫入 sink、商品不存在不寫入）。README 補上這個行為並更新測試數量，表格加總與實際數量一致。

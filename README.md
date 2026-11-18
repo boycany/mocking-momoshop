@@ -84,6 +84,7 @@ flowchart LR
 ## Observability
 
 - **Errors.** `GlobalErrorHandler` replaces Angular's default and sends a structured record (name, message, URL, time, stack) to a swappable `LOG_SINK`. With `provideBrowserGlobalErrorListeners()`, window errors and unhandled rejections arrive there too. A failing sink never crashes the app.
+- **Handled API failures.** Errors the UI already handles (error state + retry) never reach the global handler, so the catalog layer reports every failed request as a `CatalogRequestFailed` warning with the operation name. "Not found" is an expected outcome and is deliberately not logged.
 - **Validation.** Catalog data is validated when it loads. Malformed products are dropped from every list and reported as `InvalidCatalogRecord` warnings, so one bad record removes one card instead of breaking the page (ADR 0008).
 - **Tracking.** `TrackingService` sends typed events (`product_impression`, `product_click`, `add_to_cart`) with the list name and position to a swappable `TRACKING_SINK`. `ProductCard` stays a pure UI component: it only emits `impression` (first time visible) and `opened`, and the pages decide what to track.
 - **Visible failure states.** Every async view has loading, error-with-retry and empty states; `?mockError=1` exercises them.
@@ -94,15 +95,15 @@ Both sinks log to the console today; production would point them at a real colle
 
 - **ESLint** (angular-eslint) with architecture boundaries, `prefer-signals` and `prefer-control-flow` as errors.
 - **husky + lint-staged** run Prettier and ESLint on every commit.
-- **77 Vitest tests in 20 files**, focused on logic and key interactions rather than coverage:
+- **79 Vitest tests in 20 files**, focused on logic and key interactions rather than coverage:
 
-| Area        | Tests | What they cover                                                                                                                                                   |
-| ----------- | ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| data-access | 28    | Search matching/sorting/paging, mock API errors and paging, cart merging/clamping/persistence, viewing history, payload validation and dropping malformed records |
-| mocks       | 4     | Deterministic generation, referential integrity of the home layout                                                                                                |
-| shared/ui   | 8     | Discount and sold-count copy, product card details, impression/click events                                                                                       |
-| core        | 11    | Header search navigation, category tabs, floating sidebar, app shell, global error handler                                                                        |
-| features    | 26    | Deferred home sections, the load-more rhythm, spec gating and add-to-cart, not-found handling, URL parsing and pagination, cart editing, add-to-cart tracking     |
+| Area        | Tests | What they cover                                                                                                                                                                               |
+| ----------- | ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| data-access | 30    | Search matching/sorting/paging, mock API errors and paging, cart merging/clamping/persistence, viewing history, payload validation and dropping malformed records, logging of failed requests |
+| mocks       | 4     | Deterministic generation, referential integrity of the home layout                                                                                                                            |
+| shared/ui   | 8     | Discount and sold-count copy, product card details, impression/click events                                                                                                                   |
+| core        | 11    | Header search navigation, category tabs, floating sidebar, app shell, global error handler                                                                                                    |
+| features    | 26    | Deferred home sections, the load-more rhythm, spec gating and add-to-cart, not-found handling, URL parsing and pagination, cart editing, add-to-cart tracking                                 |
 
 ## Working with AI agents
 

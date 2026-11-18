@@ -1,6 +1,6 @@
 import { DOCUMENT, Injectable, InjectionToken, inject } from '@angular/core';
 import { LOG_SINK } from '../shared/observability/log-sink';
-import { Observable, defer, map, shareReplay, switchMap, throwError, timer } from 'rxjs';
+import { Observable, defer, map, shareReplay, switchMap, tap, throwError, timer } from 'rxjs';
 import type { CatalogFixtures } from '../../mocks/fixtures';
 import { CatalogApi } from './catalog.api';
 import { CatalogNetworkError, ProductNotFoundError } from './catalog.errors';
@@ -61,15 +61,15 @@ export class MockCatalogApi extends CatalogApi {
   );
 
   getHomeLayout(): Observable<readonly HomeSection[]> {
-    return this.respond((fixtures) => fixtures.homeLayout);
+    return this.respond('getHomeLayout', (fixtures) => fixtures.homeLayout);
   }
 
   getCategories(): Observable<readonly Category[]> {
-    return this.respond((fixtures) => fixtures.categories);
+    return this.respond('getCategories', (fixtures) => fixtures.categories);
   }
 
   getProduct(id: string): Observable<Product> {
-    return this.respond((fixtures) => {
+    return this.respond('getProduct', (fixtures) => {
       const product = fixtures.products.find((candidate) => candidate.id === id);
       if (!product) {
         throw new ProductNotFoundError(id);
@@ -79,18 +79,18 @@ export class MockCatalogApi extends CatalogApi {
   }
 
   getProductsByIds(ids: readonly string[]): Observable<readonly Product[]> {
-    return this.respond((fixtures) => {
+    return this.respond('getProductsByIds', (fixtures) => {
       const byId = new Map(fixtures.products.map((product) => [product.id, product]));
       return ids.flatMap((id) => byId.get(id) ?? []);
     });
   }
 
   searchProducts(query: SearchQuery): Observable<SearchResult> {
-    return this.respond((fixtures) => searchProducts(fixtures.products, query));
+    return this.respond('searchProducts', (fixtures) => searchProducts(fixtures.products, query));
   }
 
   getRecommendations({ offset, limit }: RecommendationQuery): Observable<RecommendationPage> {
-    return this.respond((fixtures) => {
+    return this.respond('getRecommendations', (fixtures) => {
       const start = Math.max(0, Math.floor(offset));
       return {
         items: fixtures.recommendations.slice(start, start + Math.max(0, Math.floor(limit))),
@@ -130,7 +130,7 @@ export class MockCatalogApi extends CatalogApi {
     };
   }
 
-  private respond<T>(project: (fixtures: CatalogFixtures) => T): Observable<T> {
+  private respond<T>(operation: string, project: (fixtures: CatalogFixtures) => T): Observable<T> {
     return defer(() => {
       const [min, max] = this.config.latencyMs;
       const latency = min + Math.floor(Math.random() * (max - min + 1));
@@ -141,7 +141,27 @@ export class MockCatalogApi extends CatalogApi {
             ? throwError(() => new CatalogNetworkError())
             : this.fixtures$.pipe(map(project)),
         ),
+        tap({ error: (error: unknown) => this.reportFailure(operation, error) }),
       );
+    });
+  }
+
+  /**
+   * Failed requests are handled by the UI (error state + retry), so they never reach the global
+   * ErrorHandler. Report them here so operations still see them. "Not found" is an expected
+   * business outcome (e.g. an old link), not a fault, and is skipped to keep the signal clean.
+   */
+  private reportFailure(operation: string, error: unknown): void {
+    if (error instanceof ProductNotFoundError) {
+      return;
+    }
+    this.sink({
+      level: 'warn',
+      name: 'CatalogRequestFailed',
+      message: `${operation} failed`,
+      url: '',
+      timestamp: new Date().toISOString(),
+      context: { operation, error: error instanceof Error ? error.name : String(error) },
     });
   }
 }
