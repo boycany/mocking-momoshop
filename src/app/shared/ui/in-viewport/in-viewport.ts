@@ -23,6 +23,10 @@ export class InViewport {
     const destroyRef = inject(DestroyRef);
 
     afterNextRender(() => {
+      // Unsupported environments (old browsers, jsdom) simply never report visibility.
+      if (typeof IntersectionObserver === 'undefined') {
+        return;
+      }
       const observer = new IntersectionObserver(
         (entries) => this.appInViewport.emit(entries.some((entry) => entry.isIntersecting)),
         { rootMargin: this.rootMargin() },

@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
 import { Product } from '../../../data-access/models';
 import { ProductCard } from './product-card';
 
@@ -52,5 +52,49 @@ describe('ProductCard', () => {
     const element = render({ tags: [] });
     expect(element.querySelector('.fast')).toBeNull();
     expect(element.querySelector('.tags')).toBeNull();
+  });
+
+  it('emits opened on click', () => {
+    TestBed.configureTestingModule({ imports: [ProductCard], providers: [provideRouter([])] });
+    const fixture = TestBed.createComponent(ProductCard);
+    fixture.componentRef.setInput('product', product);
+    const opened = vi.fn();
+    fixture.componentInstance.opened.subscribe(opened);
+    // The test has no routes; stub navigation so the click does not fail after teardown.
+    vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
+    fixture.detectChanges();
+
+    (fixture.nativeElement as HTMLElement).querySelector('a')?.click();
+    expect(opened).toHaveBeenCalledTimes(1);
+  });
+
+  it('emits impression only the first time it becomes visible', async () => {
+    let report: (visible: boolean) => void = () => undefined;
+    vi.stubGlobal(
+      'IntersectionObserver',
+      class {
+        constructor(callback: (entries: { isIntersecting: boolean }[]) => void) {
+          report = (visible) => callback([{ isIntersecting: visible }]);
+        }
+        observe(): void {
+          // Driven manually through report().
+        }
+        disconnect(): void {
+          // Nothing to clean up.
+        }
+      },
+    );
+    TestBed.configureTestingModule({ imports: [ProductCard], providers: [provideRouter([])] });
+    const fixture = TestBed.createComponent(ProductCard);
+    fixture.componentRef.setInput('product', product);
+    const impression = vi.fn();
+    fixture.componentInstance.impression.subscribe(impression);
+    await fixture.whenStable();
+
+    report(true);
+    report(false);
+    report(true);
+    expect(impression).toHaveBeenCalledTimes(1);
+    vi.unstubAllGlobals();
   });
 });

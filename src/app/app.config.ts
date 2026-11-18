@@ -1,12 +1,14 @@
-import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
+import { ApplicationConfig, ErrorHandler, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { provideRouter, withComponentInputBinding, withInMemoryScrolling } from '@angular/router';
 import { routes } from './app.routes';
+import { GlobalErrorHandler } from './core/observability/global-error-handler';
 import { CatalogApi } from './data-access/catalog.api';
 import { MockCatalogApi } from './data-access/mock-catalog.api';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
+    { provide: ErrorHandler, useClass: GlobalErrorHandler },
     provideRouter(
       routes,
       withComponentInputBinding(),

@@ -2,6 +2,7 @@ import { Component, computed, inject, input } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { CatalogApi } from '../../data-access/catalog.api';
+import { TrackingService } from '../../shared/observability/tracking';
 import { DEFAULT_PAGE_SIZE, SearchQuery, SortOption } from '../../data-access/models';
 import { LoadError } from '../../shared/ui/load-error/load-error';
 import { ProductCard } from '../../shared/ui/product-card/product-card';
@@ -27,6 +28,7 @@ const SORT_LABELS: Readonly<Record<SortOption, string>> = {
 })
 export class SearchPage {
   private readonly catalog = inject(CatalogApi);
+  private readonly tracking = inject(TrackingService);
 
   readonly keyword = input<string>();
   readonly categoryId = input<string>();
@@ -70,4 +72,12 @@ export class SearchPage {
   protected readonly pages = computed(() =>
     this.results.hasValue() ? pageWindow(this.results.value().page, this.totalPages()) : [],
   );
+
+  protected trackProduct(
+    type: 'product_impression' | 'product_click',
+    productId: string,
+    index: number,
+  ): void {
+    this.tracking.track({ type, productId, list: 'search', position: index + 1 });
+  }
 }

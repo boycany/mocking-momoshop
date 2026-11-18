@@ -38,7 +38,13 @@
     } @else {
       <ul class="grid">
         @for (product of result.items; track product.id) {
-          <li><app-product-card [product]="product" /></li>
+          <li>
+            <app-product-card
+              [product]="product"
+              (impression)="trackProduct('product_impression', product.id, $index)"
+              (opened)="trackProduct('product_click', product.id, $index)"
+            />
+          </li>
         }
       </ul>
 

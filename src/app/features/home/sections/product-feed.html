@@ -3,7 +3,13 @@
 
   <ul class="grid">
     @for (product of items(); track product.id) {
-      <li><app-product-card [product]="product" /></li>
+      <li>
+        <app-product-card
+          [product]="product"
+          (impression)="trackProduct('product_impression', product.id, $index)"
+          (opened)="trackProduct('product_click', product.id, $index)"
+        />
+      </li>
     }
     @if (status() === 'loading') {
       @for (i of [1, 2, 3, 4, 5]; track i) {

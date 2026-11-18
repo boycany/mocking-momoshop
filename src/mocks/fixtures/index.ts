@@ -13,6 +13,8 @@ export interface CatalogFixtures {
 }
 
 const products = generateProducts();
+/* For testing purposes */
+// .map((p, i) => (i === 0 ? { ...p, price: -1 } : p));
 
 /** Seeded Fisher-Yates shuffle, standing in for a recommendation ranking. */
 function shuffled<T>(items: readonly T[], seed: number): T[] {

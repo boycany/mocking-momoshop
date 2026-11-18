@@ -1,5 +1,11 @@
 @let item = product();
-<a class="card" [routerLink]="['/goods', item.id]">
+<a
+  class="card"
+  [routerLink]="['/goods', item.id]"
+  rootMargin="0px"
+  (appInViewport)="onVisible($event)"
+  (click)="opened.emit()"
+>
   <img
     class="image"
     [src]="item.images[0]"

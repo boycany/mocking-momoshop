@@ -171,3 +171,17 @@
 - **Agent 提案**：在剩約 38 分鐘時先寫 README，確保可交付；之後的時間建議做 observability，而非 header 即時搜尋建議，理由是考題加分項明確列出 Validation / Observability。人類回覆「ok go」。
 - **Agent 產出**：英文 README，包含：非官方聲明、啟動指令（含 `?mockError=1`）、與真站逐區塊對照表、架構與依賴方向、Mermaid 資料流圖、ADR 索引、品質關卡與各模組測試數量、Agent 協作方式（含測試抓到的 Agent 錯誤與人類主導的方向調整）、刻意不做與後續方向。
 - **做法**：測試數量與 commit 歷史先從實際執行結果取得（18 個測試檔、69 個測試、10 個 commit），不憑記憶撰寫。
+
+### 第 18 輪：Observability
+
+- **Agent 提案**：依序做全域錯誤處理、資料驗證、行為追蹤，每完成一項都維持可 commit 的狀態，時間不足就停在完成的項目。人類回覆「ok go」。
+- **分層判斷**：mock API 需要回報壞資料，但 data-access 不應反向依賴 core，因此 `LOG_SINK` 與 `TrackingService` 放在 `shared/observability`，只有 `GlobalErrorHandler` 放在 `core/observability`。
+- **Agent 產出**：
+  - `GlobalErrorHandler`：結構化錯誤紀錄送到可替換的 `LOG_SINK`；sink 本身出錯也不會讓 app 崩潰。
+  - `productProblems()` 驗證；`MockCatalogApi` 載入時剔除壞商品並回報（ADR 0008）。fixtures 載入方式抽成 `MOCK_FIXTURES_LOADER` token，測試才能注入壞資料。
+  - `TrackingService` 與型別安全的事件 union。`ProductCard` 維持純 UI，只發出 `impression`（首次可見一次）與 `opened`，由商品列、商品牆、搜尋頁決定追蹤內容；商品頁送出 `add_to_cart`。
+  - `InViewport` 在不支援 IntersectionObserver 的環境直接略過，避免舊瀏覽器與 jsdom 出錯。
+- **連帶修正**：每張商品卡都有自己的 observer 後，商品牆測試「最後建立的 observer 就是偵測元素」的假設不再成立，改為依元素找出偵測元素。
+- **Agent 自我修正**：新的「點擊發出 opened」測試點了 `routerLink`，在空路由下導頁失敗，錯誤在測試結束後才非同步拋出，造成 unhandled error。屬於測試寫法問題，改為在該測試中 stub `navigateByUrl`。
+- **驗證**：lint 通過；77 個測試通過、無 unhandled error（新增錯誤處理 3、驗證 2、mock 剔除壞資料 1、商品卡事件 2，商品頁測試加上 `add_to_cart` 斷言）。README 新增 Observability 章節並更新測試數量與後續方向。
+- **Agent 自我修正（文件）**：更新 README 時，兩處 regex 取代因 Prettier 已替表格補上對齊空格而沒有命中，且那兩處未檢查取代次數，導致 ADR 0008 列與三個模組的測試數量沒有更新。事後以 grep 核對時發現，改為逐列解析表格儲存格並斷言每一處都已修改，最後驗證表格加總等於實際的 77 個測試。這是同類問題的第三次（第 7、12 輪），教訓是：每一處自動修改都必須斷言有命中。

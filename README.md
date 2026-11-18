@@ -79,20 +79,30 @@ flowchart LR
 | [0005](docs/decisions/0005-svg-placeholder-images.md)           | Local SVG placeholders instead of external images                                                   |
 | [0006](docs/decisions/0006-agents-md-single-source.md)          | `AGENTS.md` as the single source of agent guidelines                                                |
 | [0007](docs/decisions/0007-observable-boundary-signal-state.md) | Observables at the data boundary, signals for state                                                 |
+| [0008](docs/decisions/0008-drop-invalid-records.md)             | Drop and report malformed records instead of failing the page                                       |
+
+## Observability
+
+- **Errors.** `GlobalErrorHandler` replaces Angular's default and sends a structured record (name, message, URL, time, stack) to a swappable `LOG_SINK`. With `provideBrowserGlobalErrorListeners()`, window errors and unhandled rejections arrive there too. A failing sink never crashes the app.
+- **Validation.** Catalog data is validated when it loads. Malformed products are dropped from every list and reported as `InvalidCatalogRecord` warnings, so one bad record removes one card instead of breaking the page (ADR 0008).
+- **Tracking.** `TrackingService` sends typed events (`product_impression`, `product_click`, `add_to_cart`) with the list name and position to a swappable `TRACKING_SINK`. `ProductCard` stays a pure UI component: it only emits `impression` (first time visible) and `opened`, and the pages decide what to track.
+- **Visible failure states.** Every async view has loading, error-with-retry and empty states; `?mockError=1` exercises them.
+
+Both sinks log to the console today; production would point them at a real collector.
 
 ## Quality gates
 
 - **ESLint** (angular-eslint) with architecture boundaries, `prefer-signals` and `prefer-control-flow` as errors.
 - **husky + lint-staged** run Prettier and ESLint on every commit.
-- **69 Vitest tests in 18 files**, focused on logic and key interactions rather than coverage:
+- **77 Vitest tests in 20 files**, focused on logic and key interactions rather than coverage:
 
-| Area        | Tests | What they cover                                                                                                                         |
-| ----------- | ----- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| data-access | 25    | Search matching/sorting/paging, mock API errors and paging, cart merging/clamping/persistence, viewing history                          |
-| mocks       | 4     | Deterministic generation, referential integrity of the home layout                                                                      |
-| shared/ui   | 6     | Discount and sold-count copy, product card details                                                                                      |
-| core        | 8     | Header search navigation, category tabs, floating sidebar, app shell                                                                    |
-| features    | 26    | Deferred home sections, the load-more rhythm, spec gating and add-to-cart, not-found handling, URL parsing and pagination, cart editing |
+| Area        | Tests | What they cover                                                                                                                                                   |
+| ----------- | ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| data-access | 28    | Search matching/sorting/paging, mock API errors and paging, cart merging/clamping/persistence, viewing history, payload validation and dropping malformed records |
+| mocks       | 4     | Deterministic generation, referential integrity of the home layout                                                                                                |
+| shared/ui   | 8     | Discount and sold-count copy, product card details, impression/click events                                                                                       |
+| core        | 11    | Header search navigation, category tabs, floating sidebar, app shell, global error handler                                                                        |
+| features    | 26    | Deferred home sections, the load-more rhythm, spec gating and add-to-cart, not-found handling, URL parsing and pagination, cart editing, add-to-cart tracking     |
 
 ## Working with AI agents
 
@@ -111,6 +121,6 @@ This project was built with Claude as a pair, and the process is part of the del
 - **SSR + prerendering** for home and product pages (SEO, LCP). The code avoids direct browser globals to make this a configuration change.
 - **`HttpCatalogApi`** against a BFF, with retry and caching.
 - **Search suggestions** in the header (`debounceTime` + `switchMap`), and the compact search box that appears in the pinned bar on scroll.
-- **Observability:** a global error handler, runtime validation of API payloads, impression/click tracking, Web Vitals reporting.
+- **Observability in production:** real log and analytics collectors behind the existing sinks, batching, and Web Vitals reporting.
 - **Playwright visual regression** against reference screenshots, to measure "difference from the real site" objectively.
 - **Mobile layout**, checkout, member features, `/live` and `/discover`.

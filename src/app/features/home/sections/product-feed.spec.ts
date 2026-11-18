@@ -12,12 +12,25 @@ import { ProductFeed } from './product-feed';
 
 /** jsdom has no IntersectionObserver; this fake lets tests decide when the sentinel is visible. */
 class FakeIntersectionObserver {
-  static latest: FakeIntersectionObserver;
-  constructor(private readonly callback: (entries: { isIntersecting: boolean }[]) => void) {
-    FakeIntersectionObserver.latest = this;
+  static instances: FakeIntersectionObserver[] = [];
+  private element?: Element;
+
+  /** Every product card has its own observer now, so tests look the sentinel up by element. */
+  static get sentinel(): FakeIntersectionObserver {
+    const observer = FakeIntersectionObserver.instances.find((instance) =>
+      instance.element?.classList.contains('sentinel'),
+    );
+    if (!observer) {
+      throw new Error('sentinel observer not found');
+    }
+    return observer;
   }
-  observe(): void {
-    // Visibility is driven manually through setVisible().
+
+  constructor(private readonly callback: (entries: { isIntersecting: boolean }[]) => void) {
+    FakeIntersectionObserver.instances.push(this);
+  }
+  observe(element: Element): void {
+    this.element = element;
   }
   disconnect(): void {
     // Nothing to clean up.
@@ -59,7 +72,10 @@ const section: ProductFeedSection = {
 };
 
 describe('ProductFeed', () => {
-  beforeEach(() => vi.stubGlobal('IntersectionObserver', FakeIntersectionObserver));
+  beforeEach(() => {
+    FakeIntersectionObserver.instances = [];
+    vi.stubGlobal('IntersectionObserver', FakeIntersectionObserver);
+  });
   afterEach(() => vi.unstubAllGlobals());
 
   async function setup(respond?: (query: RecommendationQuery) => Observable<RecommendationPage>) {
@@ -83,7 +99,7 @@ describe('ProductFeed', () => {
     const cardCount = () => element.querySelectorAll('app-product-card').length;
     const button = () => element.querySelector<HTMLButtonElement>('.more button');
     const scrollToBottom = async () => {
-      FakeIntersectionObserver.latest.setVisible(true);
+      FakeIntersectionObserver.sentinel.setVisible(true);
       await fixture.whenStable();
     };
     return { fixture, getRecommendations, cardCount, button, scrollToBottom };
@@ -124,7 +140,7 @@ describe('ProductFeed', () => {
     expect(button()?.disabled).toBe(true);
     expect(getRecommendations).toHaveBeenCalledTimes(6);
 
-    FakeIntersectionObserver.latest.setVisible(false);
+    FakeIntersectionObserver.sentinel.setVisible(false);
     await scrollToBottom();
     expect(getRecommendations).toHaveBeenCalledTimes(6);
   });
@@ -134,9 +150,9 @@ describe('ProductFeed', () => {
     const { fixture, getRecommendations } = await setup(() => pending);
     expect(getRecommendations).toHaveBeenCalledTimes(1);
 
-    FakeIntersectionObserver.latest.setVisible(true);
-    FakeIntersectionObserver.latest.setVisible(false);
-    FakeIntersectionObserver.latest.setVisible(true);
+    FakeIntersectionObserver.sentinel.setVisible(true);
+    FakeIntersectionObserver.sentinel.setVisible(false);
+    FakeIntersectionObserver.sentinel.setVisible(true);
     fixture.detectChanges();
 
     expect(getRecommendations).toHaveBeenCalledTimes(1);

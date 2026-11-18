@@ -2,6 +2,7 @@ import { Component, inject, input } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { CatalogApi } from '../../../data-access/catalog.api';
+import { TrackingService } from '../../../shared/observability/tracking';
 import { ProductRailSection } from '../../../data-access/models';
 import { Carousel } from '../../../shared/ui/carousel/carousel';
 import { LoadError } from '../../../shared/ui/load-error/load-error';
@@ -26,7 +27,12 @@ import { ProductCardSkeleton } from '../../../shared/ui/product-card/product-car
       } @else if (products.hasValue()) {
         <app-carousel>
           @for (product of products.value(); track product.id) {
-            <app-product-card class="item" [product]="product" />
+            <app-product-card
+              class="item"
+              [product]="product"
+              (impression)="trackProduct('product_impression', product.id, $index)"
+              (opened)="trackProduct('product_click', product.id, $index)"
+            />
           }
         </app-carousel>
       } @else {
@@ -66,6 +72,7 @@ import { ProductCardSkeleton } from '../../../shared/ui/product-card/product-car
 })
 export class ProductRail {
   private readonly catalog = inject(CatalogApi);
+  private readonly tracking = inject(TrackingService);
 
   readonly section = input.required<ProductRailSection>();
 
@@ -74,4 +81,12 @@ export class ProductRail {
     params: () => this.section().productIds,
     stream: ({ params }) => this.catalog.getProductsByIds(params),
   });
+
+  protected trackProduct(
+    type: 'product_impression' | 'product_click',
+    productId: string,
+    index: number,
+  ): void {
+    this.tracking.track({ type, productId, list: this.section().title, position: index + 1 });
+  }
 }

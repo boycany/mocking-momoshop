@@ -2,7 +2,9 @@ import { TestBed } from '@angular/core/testing';
 import { firstValueFrom } from 'rxjs';
 import { CatalogApi } from './catalog.api';
 import { CatalogNetworkError, ProductNotFoundError } from './catalog.errors';
-import { MOCK_CATALOG_CONFIG, MockCatalogApi } from './mock-catalog.api';
+import { fixtures } from '../../mocks/fixtures';
+import { LOG_SINK } from '../shared/observability/log-sink';
+import { MOCK_CATALOG_CONFIG, MOCK_FIXTURES_LOADER, MockCatalogApi } from './mock-catalog.api';
 
 describe('MockCatalogApi', () => {
   let shouldFail = false;
@@ -77,5 +79,50 @@ describe('MockCatalogApi', () => {
   it('fails with CatalogNetworkError when failure is simulated', async () => {
     shouldFail = true;
     await expect(firstValueFrom(api.getCategories())).rejects.toBeInstanceOf(CatalogNetworkError);
+  });
+
+  describe('with a malformed product in the data', () => {
+    it('drops it from every list and reports it, keeping the rest usable', async () => {
+      const sink = vi.fn();
+      const broken = { ...fixtures.products[0], price: -1 };
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        providers: [
+          { provide: CatalogApi, useClass: MockCatalogApi },
+          {
+            provide: MOCK_CATALOG_CONFIG,
+            useValue: { latencyMs: [0, 0], shouldFail: () => false },
+          },
+          { provide: LOG_SINK, useValue: sink },
+          {
+            provide: MOCK_FIXTURES_LOADER,
+            useValue: () =>
+              Promise.resolve({
+                ...fixtures,
+                products: [broken, ...fixtures.products.slice(1)],
+                recommendations: [
+                  broken,
+                  ...fixtures.recommendations.filter((p) => p.id !== broken.id),
+                ],
+              }),
+          },
+        ],
+      });
+      const brokenApi = TestBed.inject(CatalogApi);
+
+      await expect(firstValueFrom(brokenApi.getProduct(broken.id))).rejects.toBeInstanceOf(
+        ProductNotFoundError,
+      );
+      const feed = await firstValueFrom(brokenApi.getRecommendations({ offset: 0, limit: 100 }));
+      expect(feed.items.some((product) => product.id === broken.id)).toBe(false);
+      expect(feed.total).toBe(fixtures.products.length - 1);
+      expect(sink).toHaveBeenCalledWith(
+        expect.objectContaining({
+          level: 'warn',
+          name: 'InvalidCatalogRecord',
+          context: { problems: expect.any(Array) },
+        }),
+      );
+    });
   });
 });

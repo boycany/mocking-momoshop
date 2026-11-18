@@ -1,4 +1,5 @@
 import { DOCUMENT, Injectable, InjectionToken, inject } from '@angular/core';
+import { LOG_SINK } from '../shared/observability/log-sink';
 import { Observable, defer, map, shareReplay, switchMap, throwError, timer } from 'rxjs';
 import type { CatalogFixtures } from '../../mocks/fixtures';
 import { CatalogApi } from './catalog.api';
@@ -13,6 +14,7 @@ import {
   SearchResult,
 } from './models';
 import { searchProducts } from './search-products';
+import { productProblems } from './validation';
 
 export interface MockCatalogConfig {
   /** Inclusive latency range in milliseconds applied to every response. */
@@ -33,6 +35,15 @@ export const MOCK_CATALOG_CONFIG = new InjectionToken<MockCatalogConfig>('MOCK_C
   },
 });
 
+/** Loads the raw fixtures. Lazy by default so they ship as their own chunk; tests can inject their own. */
+export const MOCK_FIXTURES_LOADER = new InjectionToken<() => Promise<CatalogFixtures>>(
+  'MOCK_FIXTURES_LOADER',
+  {
+    providedIn: 'root',
+    factory: () => () => import('../../mocks/fixtures').then((module) => module.fixtures),
+  },
+);
+
 /**
  * In-memory CatalogApi backed by generated fixtures. Simulates latency and failures so loading
  * and error states are real code paths. See ADR 0003.
@@ -41,10 +52,11 @@ export const MOCK_CATALOG_CONFIG = new InjectionToken<MockCatalogConfig>('MOCK_C
 export class MockCatalogApi extends CatalogApi {
   private readonly config = inject(MOCK_CATALOG_CONFIG);
 
-  private readonly fixtures$: Observable<CatalogFixtures> = defer(
-    () => import('../../mocks/fixtures'),
-  ).pipe(
-    map((module) => module.fixtures),
+  private readonly sink = inject(LOG_SINK);
+  private readonly loadFixtures = inject(MOCK_FIXTURES_LOADER);
+
+  private readonly fixtures$: Observable<CatalogFixtures> = defer(() => this.loadFixtures()).pipe(
+    map((fixtures) => this.dropInvalidProducts(fixtures)),
     shareReplay({ bufferSize: 1, refCount: false }),
   );
 
@@ -85,6 +97,37 @@ export class MockCatalogApi extends CatalogApi {
         total: fixtures.recommendations.length,
       };
     });
+  }
+
+  /**
+   * One malformed record must not take the whole page down: invalid products are removed from
+   * every list and reported, and product rails simply skip ids that no longer resolve. See ADR 0008.
+   */
+  private dropInvalidProducts(fixtures: CatalogFixtures): CatalogFixtures {
+    const invalidIds = new Set<unknown>();
+    for (const product of fixtures.products) {
+      const problems = productProblems(product);
+      if (problems.length) {
+        invalidIds.add((product as { id?: unknown }).id);
+        this.sink({
+          level: 'warn',
+          name: 'InvalidCatalogRecord',
+          message: `Dropped product ${String((product as { id?: unknown }).id)}`,
+          url: '',
+          timestamp: new Date().toISOString(),
+          context: { problems },
+        });
+      }
+    }
+    if (!invalidIds.size) {
+      return fixtures;
+    }
+    const isValid = (product: { id: unknown }) => !invalidIds.has(product.id);
+    return {
+      ...fixtures,
+      products: fixtures.products.filter(isValid),
+      recommendations: fixtures.recommendations.filter(isValid),
+    };
   }
 
   private respond<T>(project: (fixtures: CatalogFixtures) => T): Observable<T> {

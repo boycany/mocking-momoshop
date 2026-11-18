@@ -2,6 +2,7 @@ import { Component, computed, effect, inject, input, signal, untracked } from '@
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { EMPTY, Subject, catchError, exhaustMap, tap } from 'rxjs';
 import { CatalogApi } from '../../../data-access/catalog.api';
+import { TrackingService } from '../../../shared/observability/tracking';
 import { Product, ProductFeedSection } from '../../../data-access/models';
 import { InViewport } from '../../../shared/ui/in-viewport/in-viewport';
 import { LoadError } from '../../../shared/ui/load-error/load-error';
@@ -23,6 +24,7 @@ type LoadTrigger = 'initial' | 'auto' | 'manual';
 })
 export class ProductFeed {
   private readonly catalog = inject(CatalogApi);
+  private readonly tracking = inject(TrackingService);
 
   readonly section = input.required<ProductFeedSection>();
 
@@ -96,5 +98,13 @@ export class ProductFeed {
 
   protected retry(): void {
     this.requests.next(this.lastTrigger);
+  }
+
+  protected trackProduct(
+    type: 'product_impression' | 'product_click',
+    productId: string,
+    index: number,
+  ): void {
+    this.tracking.track({ type, productId, list: this.section().title, position: index + 1 });
   }
 }

@@ -7,6 +7,7 @@ import { ProductNotFoundError } from '../../data-access/catalog.errors';
 import { Product } from '../../data-access/models';
 import { CartStore } from '../../data-access/stores/cart.store';
 import { RecentlyViewedStore } from '../../data-access/stores/recently-viewed.store';
+import { TRACKING_SINK } from '../../shared/observability/tracking';
 import { GoodsPage } from './goods-page';
 
 const product: Product = {
@@ -41,6 +42,7 @@ describe('GoodsPage', () => {
 
   async function render(getProduct: CatalogApi['getProduct']) {
     const snackBar = { open: vi.fn() };
+    const trackingSink = vi.fn();
     TestBed.configureTestingModule({
       imports: [GoodsPage],
       providers: [
@@ -50,6 +52,7 @@ describe('GoodsPage', () => {
           useValue: { getProduct, getCategories: () => of([{ id: 'phone', name: '手機/相機' }]) },
         },
         { provide: MatSnackBar, useValue: snackBar },
+        { provide: TRACKING_SINK, useValue: trackingSink },
       ],
     });
     const fixture = TestBed.createComponent(GoodsPage);
@@ -60,7 +63,7 @@ describe('GoodsPage', () => {
       Array.from(element.querySelectorAll('button')).find(
         (candidate) => candidate.textContent?.trim() === label,
       );
-    return { fixture, element, button, snackBar };
+    return { fixture, element, button, snackBar, trackingSink };
   }
 
   it('shows the product with its category breadcrumb', async () => {
@@ -83,7 +86,7 @@ describe('GoodsPage', () => {
   });
 
   it('adds the selected specs and quantity to the cart and confirms', async () => {
-    const { fixture, element, button, snackBar } = await render(() => of(product));
+    const { fixture, element, button, snackBar, trackingSink } = await render(() => of(product));
     button('白色')?.click();
     button('256GB')?.click();
     const select = element.querySelector('select') as HTMLSelectElement;
@@ -97,6 +100,14 @@ describe('GoodsPage', () => {
     expect(cart.totalQuantity()).toBe(3);
     expect(cart.items()[0].specs).toEqual({ 顏色: '白色', 容量: '256GB' });
     expect(snackBar.open).toHaveBeenCalledWith('已加入購物車', undefined, { duration: 2500 });
+    expect(trackingSink).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'add_to_cart',
+        productId: 'phone-001',
+        quantity: 3,
+        price: 48900,
+      }),
+    );
   });
 
   it('records successfully loaded products in the viewing history', async () => {

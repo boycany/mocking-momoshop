@@ -7,6 +7,7 @@ import { CatalogApi } from '../../data-access/catalog.api';
 import { ProductNotFoundError } from '../../data-access/catalog.errors';
 import { CartStore, SelectedSpecs } from '../../data-access/stores/cart.store';
 import { RecentlyViewedStore } from '../../data-access/stores/recently-viewed.store';
+import { TrackingService } from '../../shared/observability/tracking';
 import { LoadError } from '../../shared/ui/load-error/load-error';
 import { Price } from '../../shared/ui/price/price';
 
@@ -22,6 +23,7 @@ export class GoodsPage {
   private readonly recentlyViewed = inject(RecentlyViewedStore);
   private readonly snackBar = inject(MatSnackBar);
   private readonly title = inject(Title);
+  private readonly tracking = inject(TrackingService);
 
   /** Bound from the `:id` route param via withComponentInputBinding(). */
   readonly id = input.required<string>();
@@ -98,6 +100,12 @@ export class GoodsPage {
       return;
     }
     this.cart.add(product, this.selectedSpecs(), this.quantity());
+    this.tracking.track({
+      type: 'add_to_cart',
+      productId: product.id,
+      quantity: this.quantity(),
+      price: product.price,
+    });
     this.snackBar.open('已加入購物車', undefined, { duration: 2500 });
   }
 
