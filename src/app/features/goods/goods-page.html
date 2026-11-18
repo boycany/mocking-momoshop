@@ -1,0 +1,123 @@
+<div class="page-container goods">
+  @if (notFound()) {
+    <section class="message">
+      <h1>商品已下架或不存在</h1>
+      <a routerLink="/">回首頁逛逛</a>
+    </section>
+  } @else if (product.error()) {
+    <app-load-error message="商品資訊載入失敗" (retry)="product.reload()" />
+  } @else if (product.hasValue()) {
+    @let item = product.value();
+
+    <nav class="breadcrumb" aria-label="麵包屑">
+      <a routerLink="/">首頁</a>
+      @if (categoryName()) {
+        <span>›</span>
+        <a routerLink="/search" [queryParams]="{ categoryId: item.categoryId }">{{
+          categoryName()
+        }}</a>
+      }
+      <span>›</span>
+      <span>{{ item.name }}</span>
+    </nav>
+
+    <div class="main">
+      <section class="gallery" aria-label="商品圖片">
+        <img
+          class="hero"
+          [src]="item.images[activeImage()]"
+          [alt]="item.name"
+          width="480"
+          height="480"
+        />
+        <ul class="thumbs">
+          @for (image of item.images; track $index) {
+            <li>
+              <button
+                type="button"
+                [class.active]="$index === activeImage()"
+                [attr.aria-label]="'第 ' + ($index + 1) + ' 張圖'"
+                (click)="activeImage.set($index)"
+              >
+                <img [src]="image" alt="" width="72" height="72" />
+              </button>
+            </li>
+          }
+        </ul>
+      </section>
+
+      <section class="info">
+        @if (item.promoText) {
+          <p class="promo">{{ item.promoText }}</p>
+        }
+        <h1>{{ item.name }}</h1>
+        <p class="rating">★ {{ item.rating }}（{{ item.reviewCount }} 則評價）</p>
+
+        <div class="price-box">
+          <span class="label">促銷價</span>
+          <app-price
+            [price]="item.price"
+            [originalPrice]="item.originalPrice"
+            size="large"
+            [showDiscount]="true"
+          />
+        </div>
+
+        <div class="tags">
+          @if (fastDelivery()) {
+            <span class="fast"><b>速</b>最快今日</span>
+          }
+          @for (tag of item.tags; track tag.type) {
+            @if (tag.type !== 'fast-delivery') {
+              <span class="tag">{{ tag.label }}</span>
+            }
+          }
+        </div>
+
+        @for (group of item.specs; track group.name) {
+          <fieldset class="spec">
+            <legend>{{ group.name }}</legend>
+            @for (option of group.options; track option.id) {
+              <button
+                type="button"
+                [class.selected]="selectedSpecs()[group.name] === option.label"
+                [attr.aria-pressed]="selectedSpecs()[group.name] === option.label"
+                (click)="selectSpec(group.name, option.label)"
+              >
+                {{ option.label }}
+              </button>
+            }
+          </fieldset>
+        }
+
+        <label class="quantity">
+          <span>數量</span>
+          <select [value]="quantity()" (change)="onQuantityChange($event)">
+            @for (count of quantityOptions; track count) {
+              <option [value]="count">{{ count }}</option>
+            }
+          </select>
+        </label>
+
+        <div class="actions">
+          <button type="button" class="add" [disabled]="!specsComplete()" (click)="addToCart()">
+            加入購物車
+          </button>
+          <button type="button" class="buy" [disabled]="!specsComplete()" (click)="buyNow()">
+            直接購買
+          </button>
+        </div>
+        @if (!specsComplete()) {
+          <p class="hint">請先選擇商品規格</p>
+        }
+      </section>
+    </div>
+
+    <section class="description">
+      <h2>商品特色</h2>
+      <p>{{ item.description }}</p>
+    </section>
+  } @else {
+    <div class="skeleton"></div>
+  }
+</div>

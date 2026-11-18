@@ -14,7 +14,9 @@
           <span>{{ label }}</span>
         </li>
       }
-      <li><span>購物車 (0)</span></li>
+      <li>
+        <span>購物車 ({{ cart.totalQuantity() }})</span>
+      </li>
     </ul>
   </div>
 </div>

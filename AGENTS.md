@@ -67,6 +67,7 @@ These boundaries are **enforced by ESLint** (`no-restricted-imports` in `eslint.
 - Use signal APIs: `input()`, `output()`, `model()`, `computed()`, `linkedSignal()`. Decorator `@Input()` / `@Output()` are lint errors.
 - Use built-in control flow (`@if`, `@for`, `@switch`, `@defer`). `@for` must have `track`. Structural directives (`*ngIf`, `*ngFor`) are lint errors.
 - OnPush is the default change detection in Angular 22. Do not set `changeDetection` explicitly, and never use `ChangeDetectionStrategy.Eager`.
+- `resource()` / `rxResource()`: read `value()` only after checking `hasValue()`. `value()` throws while the resource is in an error state, so an unguarded read in a `computed` or `effect` turns a handled error into a crash.
 - Bind route params with `withComponentInputBinding()`. Do not subscribe to `ActivatedRoute` manually.
 - Do not access `window`, `document` or `localStorage` directly. Use `afterNextRender` or wrap them in a service, so the app stays SSR-ready.
 - File naming follows the current Angular style guide: `product-card.ts`, `product-card.html`, `product-card.scss`.

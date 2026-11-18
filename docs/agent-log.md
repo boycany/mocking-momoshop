@@ -131,3 +131,14 @@
 - **人類回報**：「看更多」的文字和向下箭頭沒有垂直置中。
 - **原因**：`⌄` 字元的字形本身畫在字框偏下的位置，靠調整字型或行高難以穩定對齊。
 - **Agent 處理**：改用 inline SVG 箭頭（`aria-hidden`），按鈕改為 `inline-flex` + `align-items: center`，以幾何中心對齊、不依賴字型。未採用 Material Icons 字型的 `expand_more`，因為字型載入前會短暫顯示英文字。測試改為比對按鈕文字「看更多」。
+
+### 第 14 輪：商品頁與 CartStore
+
+- **Agent 產出**：
+  - `BrowserStorage`：localStorage 的 JSON 封裝，沒有 window、儲存被封鎖或空間已滿時都不會丟例外。
+  - `CartStore`（signalStore）：同商品同規格合併數量、不同規格分開；數量限制在 1–99；`totalQuantity`、`subtotal`；啟動時從 localStorage 還原並略過格式不符的資料，之後以 `effect` 持續寫回。
+  - 商品頁：麵包屑、圖片與縮圖切換、促銷文案、價格（含「X折」）、標籤、規格按鈕、數量、加入購物車與直接購買。選中的圖片、規格、數量用 `linkedSignal` 以商品 id 為來源，換商品時自動重置。商品不存在與網路錯誤分開處理。頁面標題改為商品名。
+  - 頂部工具列的購物車數量接上 `CartStore`。
+- **測試抓到的真實 bug**：商品不存在與網路錯誤的兩個測試失敗。原因是 Angular resource 在錯誤狀態下讀 `value()` 會丟出例外，而 Agent 在多個 `computed` 和設定標題的 `effect` 中直接讀取，導致錯誤畫面不會出現、頁面直接壞掉。修正為先以 `hasValue()` 判斷的 `loadedProduct` computed，其他地方一律經由它讀取；並檢查首頁、商品列、分類 tab 皆已正確判斷。
+- **規範更新**：這類錯誤 Agent 容易重複，因此在 `AGENTS.md` 新增「`value()` 只能在 `hasValue()` 之後讀」。
+- **驗證**：lint 通過；48 個測試通過（新增 CartStore 6、商品頁 5）。
