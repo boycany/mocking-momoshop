@@ -8,3 +8,11 @@
 main {
   flex: 1;
 }
+
+// Keep the utility bar visible while scrolling, like the real site. Sticky (not fixed) keeps it
+// in normal flow, so the header below needs no offset. Stacks above carousel arrows.
+app-utility-bar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}

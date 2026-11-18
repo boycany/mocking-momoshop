@@ -110,3 +110,8 @@
   - 輪播的子元素是投影內容，emulated 樣式封裝下 `> *` 選不到，改用 grid `grid-auto-flow: column` 排版，子元素不需額外樣式。
   - 首頁測試第一次編譯失敗：`DeferBlockBehavior` 應從 `@angular/core/testing` 匯入，修正後通過。
 - **驗證**：lint 通過；31 個測試通過（新增 price 2、product-card 工具 1、product-card 3、home-page 2）；production build 無 budget 警告，首頁初始傳輸約 77 kB。
+
+### 第 11 輪：工具列固定在頂端
+
+- **人類回報**：往下捲動後頂部工具列會消失，真站是固定在頂端的。
+- **Agent 處理**：以 `position: sticky` 而非 `fixed` 實作，工具列維持在正常版面流中，下方 header 不需另外補位移；`z-index` 高於輪播箭頭。純樣式修改，jsdom 無法驗證捲動行為，未補單元測試，由人類在瀏覽器確認。
