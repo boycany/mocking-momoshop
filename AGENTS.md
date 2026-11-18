@@ -76,6 +76,8 @@ These boundaries are **enforced by ESLint** (`no-restricted-imports` in `eslint.
 - Cross-page shared state uses `signalStore` from `@ngrx/signals` (e.g. `CartStore`, `RecentlyViewedStore`).
 - Search criteria (keyword, sort, page, filters) live **only in URL query params**, never in a store. See ADR 0002.
 - Local UI state uses a component-level `signal()`. Do not create a store for it.
+- The data boundary (`CatalogApi`) returns cold Observables. Components and stores hold state in signals.
+  Convert only at the page level with `rxResource()`, `toSignal()` or `toObservable()`; do not mix RxJS into `shared/ui` or stores. See ADR 0007.
 
 ## Styling
 
@@ -97,7 +99,7 @@ These boundaries are **enforced by ESLint** (`no-restricted-imports` in `eslint.
 
 ## How agents should work
 
-- Before coding, state which files you plan to change.
+- Before each step, describe what you are about to do (files, approach, tests) and **wait for the human to reply "ok go"** before writing any code.
 - Stop and ask the human before adding a dependency, crossing a dependency boundary, or changing lint rules.
 - If you are unsure how the real momoshop lays something out, ask. Do not invent large amounts of UI.
 - Log notable rounds (human instruction → agent output → human correction and why) in `docs/agent-log.md`.

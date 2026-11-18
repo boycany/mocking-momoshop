@@ -61,4 +61,23 @@
 
 ## Phase 2：實作
 
-（待續）
+### 第 6 輪：上傳 GitHub、確立「ok go」工作節奏
+
+- **人類指令**：將專案上傳至 GitHub（boycany）。
+- **Agent 處理**：雲端環境沒有可用的 GitHub 憑證；內建瀏覽器未登入，Agent 不代輸密碼。改為提供指令，由人類以自己的身分建立 repo 並 push。
+- **人類決策**：之後每一步，Agent 必須先描述要做什麼，人類回覆「ok go」才可寫程式碼。已寫入 `AGENTS.md`。
+
+### 第 7 輪：data-access 層
+
+- **Agent 提案**：models、`CatalogApi`（回傳 Promise）、mock 實作與 fixtures、單元測試。
+- **人類提問**：「用 RxJS 會不會比用 Promise 方便，比較容易做到更多元的功能？」
+- **Agent 重新評估**：同意改用 Observable，理由為 HttpClient 一致性、搜尋建議的 debounce/switchMap、重試與輪詢等擴充性；同時劃清界線，Observable 只在資料邊界，狀態仍用 signal。記錄為 ADR 0007。人類回覆「ok go」後動工。
+- **Agent 產出**：
+  - `data-access/models`：Product、Category、HomeSection（discriminated union）、SearchQuery/Result、AppLink。
+  - `CatalogApi` 抽象與錯誤型別（`ProductNotFoundError`、`CatalogNetworkError`）。
+  - `search-products.ts`：搜尋的純函式（關鍵字 AND 比對、全形半形正規化、分類、排序、分頁與頁碼夾限），與 mock 解耦以便單獨測試。
+  - `MockCatalogApi`：`timer` 模擬延遲，`?mockError=1` 觸發錯誤；設定抽成 `MOCK_CATALOG_CONFIG` token，測試可設 0 延遲並強制失敗。
+  - `src/mocks`：mulberry32 固定 seed 產生器、SVG placeholder、12 個分類 × 5 = 60 筆商品、依真站截圖文案建立的首頁版面。
+- **實作中的調整**：「今日大牌」在真站緊鄰主視覺輪播，故併入 `hero-carousel` 而非獨立 section，已同步更新 ADR 0004 與計劃書。
+- **Agent 自我修正**：更新文件的腳本因 `plan.md` 表格已被 Prettier 重新對齊而比對失敗、中途停止；確認已完成與未完成的部分後補齊，未重複套用。
+- **驗證**：lint 通過；20 個單元測試通過（搜尋 8、mock API 6、fixtures 4、預設 2）；build 通過，fixtures 確認拆為獨立 lazy chunk（約 14 kB）。

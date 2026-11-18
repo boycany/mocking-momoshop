@@ -29,13 +29,14 @@
 
 ## 3. 技術選型
 
-| 項目    | 選擇                               | 理由                                               |
-| ------- | ---------------------------------- | -------------------------------------------------- |
-| 框架    | Angular 22（standalone、zoneless） | 個人最熟悉；signals 與 zoneless 是目前官方主推方向 |
-| UI 元件 | Angular Material / CDK，只取行為   | 見 ADR 0001                                        |
-| 狀態    | `@ngrx/signals` signalStore        | 輕量、與 signals 原生整合，適合購物車這類跨頁狀態  |
-| 測試    | Vitest（Angular CLI 預設）         | 速度快，聚焦純邏輯                                 |
-| 圖片    | 本地 SVG placeholder               | 見 ADR 0005                                        |
+| 項目       | 選擇                               | 理由                                               |
+| ---------- | ---------------------------------- | -------------------------------------------------- |
+| 框架       | Angular 22（standalone、zoneless） | 個人最熟悉；signals 與 zoneless 是目前官方主推方向 |
+| UI 元件    | Angular Material / CDK，只取行為   | 見 ADR 0001                                        |
+| 狀態       | `@ngrx/signals` signalStore        | 輕量、與 signals 原生整合，適合購物車這類跨頁狀態  |
+| 非同步資料 | RxJS Observable + `rxResource()`   | 見 ADR 0007                                        |
+| 測試       | Vitest（Angular CLI 預設）         | 速度快，聚焦純邏輯                                 |
+| 圖片       | 本地 SVG placeholder               | 見 ADR 0005                                        |
 
 ## 4. 架構
 
@@ -61,7 +62,7 @@ src/mocks/
 
 ### 4.1 關鍵設計
 
-1. **CatalogApi 資料邊界**（ADR 0003）：頁面只依賴抽象類別，`MockCatalogApi` 由 provider 注入。mock 模擬 200–400ms 延遲，並可用 query flag 觸發錯誤，讓 loading / error / empty 狀態都是真的走得到的路徑。
+1. **CatalogApi 資料邊界**（ADR 0003、0007）：頁面只依賴抽象類別，方法回傳 Observable，頁面以 `rxResource()` 轉成 signal；`MockCatalogApi` 由 provider 注入，fixtures 以 dynamic import 拆成獨立 chunk。mock 模擬 200–400ms 延遲，並可用 query flag 觸發錯誤，讓 loading / error / empty 狀態都是真的走得到的路徑。
 2. **Section-driven 首頁**（ADR 0004）：`home-layout` 是一串 `{ type, data }`，首頁以 `@switch` 對應 section 元件，模擬電商首頁由 CMS 營運排版的真實情境。
 3. **搜尋狀態以 URL 為唯一來源**（ADR 0002）：重新整理、上一頁、分享連結都不會遺失狀態。
 4. **Rendering strategy**：首頁下半部與長清單使用 `@defer (on viewport)`，降低首屏成本。
@@ -83,16 +84,16 @@ src/mocks/
 
 ### 4.4 首頁區塊（對照真站截圖）
 
-| 真站區塊                                  | 對應元件                               |
-| ----------------------------------------- | -------------------------------------- |
-| 頂部工具列（回首頁、登入、購物車…）       | `core/layout/utility-bar`              |
-| Logo、搜尋框與熱搜字、右上促銷徽章        | `core/layout/header`                   |
-| 分類 tab（首頁、限時搶購、直播、家電…）   | `core/layout/category-nav`             |
-| 主視覺輪播 + 「今日大牌」四宮格           | `hero-carousel`、`today-brand` section |
-| 圓形快捷入口（日用婦幼、休閒旅遊…）       | `quick-entry` section                  |
-| 「今日限定」活動橫幅                      | `promo-banner` section                 |
-| 商品橫向列表                              | `product-rail` section                 |
-| 右側浮動欄（瀏覽紀錄、購物車、簽到、TOP） | `core/layout/floating-sidebar`         |
+| 真站區塊                                  | 對應元件                                   |
+| ----------------------------------------- | ------------------------------------------ |
+| 頂部工具列（回首頁、登入、購物車…）       | `core/layout/utility-bar`                  |
+| Logo、搜尋框與熱搜字、右上促銷徽章        | `core/layout/header`                       |
+| 分類 tab（首頁、限時搶購、直播、家電…）   | `core/layout/category-nav`                 |
+| 主視覺輪播 + 「今日大牌」四宮格           | `hero-carousel` section（含 `todayBrand`） |
+| 圓形快捷入口（日用婦幼、休閒旅遊…）       | `quick-entry` section                      |
+| 「今日限定」活動橫幅                      | `promo-banner` section                     |
+| 商品橫向列表                              | `product-rail` section                     |
+| 右側浮動欄（瀏覽紀錄、購物車、簽到、TOP） | `core/layout/floating-sidebar`             |
 
 ## 5. Validation / Observability
 
