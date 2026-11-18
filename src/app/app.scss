@@ -1,0 +1,10 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: var(--momo-surface);
+}
+
+main {
+  flex: 1;
+}

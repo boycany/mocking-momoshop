@@ -81,3 +81,15 @@
 - **實作中的調整**：「今日大牌」在真站緊鄰主視覺輪播，故併入 `hero-carousel` 而非獨立 section，已同步更新 ADR 0004 與計劃書。
 - **Agent 自我修正**：更新文件的腳本因 `plan.md` 表格已被 Prettier 重新對齊而比對失敗、中途停止；確認已完成與未完成的部分後補齊，未重複套用。
 - **驗證**：lint 通過；20 個單元測試通過（搜尋 8、mock API 6、fixtures 4、預設 2）；build 通過，fixtures 確認拆為獨立 lazy chunk（約 14 kB）。
+
+### 第 8 輪：外框 layout、主題與路由
+
+- **Agent 提案**：品牌色 token、三條 lazy route 與 404、utility bar / header / category nav / footer，App 換成 layout 外框。人類回覆「ok go」。
+- **Agent 產出**：
+  - `styles.scss`：momo 品牌 token（`--momo-primary` 等），以 `mat.theme-overrides` 把 Material 的 M3 primary 固定為 `#e4007f`；`.page-container` 固定 1200px 寬。
+  - 路由：`/`、`/goods/:id`、`/search`、`**`，全部 `loadComponent` lazy load，並設定頁面 title。頁面內容先放殼。
+  - `core/routing/injectQueryParam()`：layout 元件不在路由元件樹內，`withComponentInputBinding()` 用不到，因此從 Router 事件讀 query param 轉成 signal。header 搜尋框用 `linkedSignal` 跟 URL 的 keyword 同步，但仍可自由輸入。
+  - `category-nav` 以 `rxResource` 從 `CatalogApi` 讀分類，依 URL 的 `categoryId` 標示目前分類。
+  - footer 註明「前端面試作品，非 momo 官方網站，資料皆為模擬」，避免被誤認為真站。
+- **刻意簡化**：工具列上會員、訂單等連結以純文字呈現（不在範圍內）；購物車數量暫時寫死為 0，待 CartStore 完成後接上；熱搜字暫時寫在 header 內。
+- **驗證**：lint 通過；23 個測試通過（新增 header 3、category-nav 1，並把 Angular 預設的 app.spec 改為驗證 layout 外框）；production build 無 budget 警告，首頁初始傳輸約 69 kB，各頁面與 fixtures 皆為獨立 lazy chunk。

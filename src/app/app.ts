@@ -1,12 +1,14 @@
-import { Component, signal } from '@angular/core';
+import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { CategoryNav } from './core/layout/category-nav/category-nav';
+import { Footer } from './core/layout/footer/footer';
+import { Header } from './core/layout/header/header';
+import { UtilityBar } from './core/layout/utility-bar/utility-bar';
 
 @Component({
-  imports: [RouterOutlet],
   selector: 'app-root',
-  styleUrl: './app.scss',
+  imports: [RouterOutlet, UtilityBar, Header, CategoryNav, Footer],
   templateUrl: './app.html',
+  styleUrl: './app.scss',
 })
-export class App {
-  protected readonly title = signal('mocking-momoshop');
-}
+export class App {}

@@ -1,0 +1,32 @@
+.utility-bar {
+  background: var(--momo-surface);
+  border-bottom: 1px solid var(--momo-border);
+  font-size: 13px;
+}
+
+.bar {
+  display: flex;
+  justify-content: space-between;
+  height: 32px;
+  align-items: center;
+}
+
+.links {
+  display: flex;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li + li::before {
+    content: '';
+    display: inline-block;
+    width: 1px;
+    height: 10px;
+    margin: 0 10px;
+    background: #ccc;
+  }
+
+  a:hover {
+    color: var(--momo-primary);
+  }
+}

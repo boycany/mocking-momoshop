@@ -1,0 +1,20 @@
+<div class="utility-bar">
+  <div class="page-container bar">
+    <ul class="links">
+      <li><a routerLink="/">回首頁</a></li>
+      @for (label of leftLinks; track label) {
+        <li>
+          <span>{{ label }}</span>
+        </li>
+      }
+    </ul>
+    <ul class="links">
+      @for (label of rightLinks; track label) {
+        <li>
+          <span>{{ label }}</span>
+        </li>
+      }
+      <li><span>購物車 (0)</span></li>
+    </ul>
+  </div>
+</div>

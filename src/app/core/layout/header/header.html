@@ -1,0 +1,36 @@
+<header class="page-container header">
+  <a class="logo" routerLink="/" aria-label="回首頁">
+    <span class="wordmark">momo</span>
+    <span class="slogan">秋末採買季<em>超取$290免運</em></span>
+  </a>
+
+  <div class="search">
+    <form class="search-box" role="search" (submit)="$event.preventDefault(); search()">
+      <input
+        type="search"
+        name="keyword"
+        aria-label="搜尋商品"
+        autocomplete="off"
+        [value]="keyword()"
+        (input)="onInput($event)"
+      />
+      <button type="submit">搜尋</button>
+    </form>
+    <div class="hot-keywords">
+      <span>猜你想搜 &gt;</span>
+      @for (hot of hotKeywords; track hot) {
+        <button type="button" (click)="search(hot)">{{ hot }}</button>
+      }
+    </div>
+  </div>
+
+  <ul class="promos">
+    @for (promo of promos; track promo.title) {
+      <li class="promo">
+        <span class="promo-title">{{ promo.title }}</span>
+        <strong>{{ promo.caption }}</strong>
+        <span class="promo-footer">{{ promo.footer }}</span>
+      </li>
+    }
+  </ul>
+</header>

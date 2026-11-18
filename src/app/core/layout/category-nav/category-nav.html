@@ -1,0 +1,20 @@
+<nav class="category-nav" aria-label="商品分類">
+  <ul class="page-container tabs">
+    <li>
+      <a routerLink="/" [class.active]="!activeCategoryId()">首頁</a>
+    </li>
+    @if (categories.hasValue()) {
+      @for (category of categories.value(); track category.id) {
+        <li>
+          <a
+            routerLink="/search"
+            [queryParams]="{ categoryId: category.id }"
+            [class.active]="activeCategoryId() === category.id"
+          >
+            {{ category.name }}
+          </a>
+        </li>
+      }
+    }
+  </ul>
+</nav>

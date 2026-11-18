@@ -1,23 +1,30 @@
 import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
+import { of } from 'rxjs';
 import { App } from './app';
+import { CatalogApi } from './data-access/catalog.api';
 
 describe('App', () => {
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
+  it('renders the layout shell around the router outlet', async () => {
+    TestBed.configureTestingModule({
       imports: [App],
-    }).compileComponents();
-  });
-
-  it('should create the app', () => {
-    const fixture = TestBed.createComponent(App);
-    const app = fixture.componentInstance;
-    expect(app).toBeTruthy();
-  });
-
-  it('should render title', async () => {
+      providers: [
+        provideRouter([]),
+        { provide: CatalogApi, useValue: { getCategories: () => of([]) } },
+      ],
+    });
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, mocking-momoshop');
+    const element: HTMLElement = fixture.nativeElement;
+
+    for (const selector of [
+      'app-utility-bar',
+      'app-header',
+      'app-category-nav',
+      'router-outlet',
+      'app-footer',
+    ]) {
+      expect(element.querySelector(selector)).not.toBeNull();
+    }
   });
 });
