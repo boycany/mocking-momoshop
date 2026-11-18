@@ -12,12 +12,12 @@
 - `CatalogApi` 所有方法回傳 **cold Observable**。
 - 頁面以 `rxResource()` 取資料，取得 `isLoading` / `error` / `value` 等 signal。
 - 元件內部狀態與 store 一律使用 signal。
-- RxJS 與 signal 只在頁面層轉換（`rxResource()`、`toSignal()`、`toObservable()`），不在 shared/ui 或 store 內混用。
+- RxJS 與 signal 只在容器元件轉換（`rxResource()`、`toSignal()`、`toObservable()`），包括頁面、layout 元件（例如 `injectQueryParam`）與商品牆區塊；不在 shared/ui 或 store 內混用。
 
 ## 理由
 
 1. Angular `HttpClient` 原生回傳 Observable，日後 `HttpCatalogApi` 可直接回傳 `http.get()`，介面不變。
-2. 搜尋建議需要 `debounceTime` / `distinctUntilChanged` / `switchMap`（取消舊請求）。
+2. 搜尋建議需要 `debounceTime` / `distinctUntilChanged` / `switchMap`（取消舊請求）。此功能最後因時間未實作；實際用到 RxJS 組合能力的是首頁商品牆的 `exhaustMap`（載入中忽略重複觸發）與 mock 的 `tap({ error })` 失敗回報。
 3. 日後的重試（`retry`）、輪詢（限時搶購庫存、倒數）、多來源合併（`combineLatest`）都更自然。
 4. mock 可用 `timer` + `throwError` 簡潔地模擬延遲與錯誤。
 

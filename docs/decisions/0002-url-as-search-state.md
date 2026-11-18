@@ -11,7 +11,8 @@
 
 - 搜尋條件只存在 URL：`/search?keyword=&sort=&page=`。
 - 透過 `withComponentInputBinding()` 將 query params 綁定為元件 `input()`，再以 `computed()` / `resource` 衍生結果。
-- 變更條件一律透過 `router.navigate(..., { queryParamsHandling: 'merge' })`。
+- 變更條件一律透過導航：排序與頁碼是帶 `queryParamsHandling="merge"` 的 `routerLink`（真正的連結，可另開分頁、可分享）；header 搜尋框以 `router.navigate` 帶入 keyword。
+- 實作時目前的篩選條件只有分類（`categoryId`）；`sort` 與 `page` 以 input transform 修正不合法的值。
 
 ## 影響
 

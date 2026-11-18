@@ -50,7 +50,7 @@ src/app/
 src/mocks/        seeded fixture generator, SVG placeholders, home layout
 ```
 
-Dependencies only point downward (`features → shared/ui, data-access`), and **ESLint enforces it**: a feature importing another feature, or anything outside `data-access` importing mock fixtures, fails lint and therefore the pre-commit hook.
+Dependencies only point downward (`features → shared/ui, data-access`), and **ESLint enforces it**: a feature importing another feature, or `features/`, `core/` or `shared/` importing mock fixtures, fails lint and therefore the pre-commit hook.
 
 ```mermaid
 flowchart LR
@@ -87,7 +87,7 @@ flowchart LR
 - **Handled API failures.** Errors the UI already handles (error state + retry) never reach the global handler, so the catalog layer reports every failed request as a `CatalogRequestFailed` warning with the operation name. "Not found" is an expected outcome and is deliberately not logged.
 - **Validation.** Catalog data is validated when it loads. Malformed products are dropped from every list and reported as `InvalidCatalogRecord` warnings, so one bad record removes one card instead of breaking the page (ADR 0008).
 - **Tracking.** `TrackingService` sends typed events (`product_impression`, `product_click`, `add_to_cart`) with the list name and position to a swappable `TRACKING_SINK`. `ProductCard` stays a pure UI component: it only emits `impression` (first time visible) and `opened`, and the pages decide what to track.
-- **Visible failure states.** Every async view has loading, error-with-retry and empty states; `?mockError=1` exercises them.
+- **Visible failure states.** Home, product rails, the recommendation wall, the product page and search have loading and error-with-retry states; search, cart and the wall have empty or end states. The category tabs degrade silently (no tabs) rather than showing an error. `?mockError=1` exercises all of this.
 
 Both sinks log to the console today; production would point them at a real collector.
 
@@ -114,7 +114,8 @@ This project was built with Claude as a pair, and the process is part of the del
 - **Human gate per step.** Before each step the agent describes files, approach and tests, and writes code only after an explicit "ok go". Each step ends with lint, tests and a build passing, then a separate commit with a `Co-Authored-By` trailer.
 - **Honest log.** [`docs/agent-log.md`](docs/agent-log.md) records every round, including:
   - Agent mistakes caught by tests: reading `resource.value()` in an error state, a stray `\$` escape in an external template, and a wrong import path for defer-block testing.
-  - Direction changes made by the human after observing the real site: the infinite-scroll wall and its exact rhythm, the pinned utility bar, the floating sidebar, and switching the data boundary from Promises to Observables.
+  - Direction changes made by the human after observing the real site: the infinite-scroll wall and its exact rhythm, the pinned utility bar, and the floating sidebar.
+  - Design changes prompted by the human's questions: switching the data boundary from Promises to Observables, and, while asking how to verify observability, uncovering that handled API failures were never logged.
   - Lessons fed back into `AGENTS.md`, e.g. "read `value()` only after `hasValue()`" and "OnPush is already the default in Angular 22".
 
 ## Deliberately out of scope / next steps

@@ -3,6 +3,8 @@
 > 題目：A. Mocking momoshop（純前端，無任何真實 API 呼叫）
 > 撰寫日期：2026-11-18
 > 實作時限：第一個 commit 起約 120 分鐘
+>
+> 本文件保留 Phase 1 的原始計劃，以呈現計劃如何演變。實作後與計劃的差異見第 9 節。
 
 ## 1. 目標與評估重點的對應
 
@@ -133,3 +135,37 @@ src/mocks/
 - 手機版（獨立 layout 或 RWD，視產品策略而定）
 - Playwright 視覺回歸測試，量化「與真站差異」
 - Web Vitals 實際上報
+
+## 9. 實作結果與計劃的差異（實作後補記）
+
+| 項目               | 原計劃                                                                                  | 實際                                                          | 原因                                    |
+| ------------------ | --------------------------------------------------------------------------------------- | ------------------------------------------------------------- | --------------------------------------- |
+| 資料邊界           | `CatalogApi` 回傳 Promise                                                               | 回傳 Observable                                               | 人類提問後重新評估，見 ADR 0007         |
+| 首頁區塊           | 獨立的 `today-brand` section                                                            | 併入 `hero-carousel`                                          | 真站中兩者並排，見 ADR 0004             |
+| 首頁商品牆         | 未規劃                                                                                  | `product-feed` 無限捲動 + 「看更多」                          | 人類觀察真站後提出並指定載入節奏        |
+| 右側浮動欄         | P2，排在最後                                                                            | 第 5 步插隊完成，瀏覽紀錄 3 筆                                | 人類觀察到真站每頁都有                  |
+| 購物車             | 抽屜（sidenav）                                                                         | `/cart` 購物清單頁                                            | 人類指定點擊後進入購物清單畫面          |
+| 分頁               | Material paginator                                                                      | 自製數字頁碼                                                  | 與真站樣式差異太大，見 ADR 0001         |
+| 資料驗證           | 格式錯誤直接拋錯                                                                        | 剔除壞資料並回報                                              | 一筆壞資料不應讓整頁失敗，見 ADR 0008   |
+| Observability 位置 | `TrackingService` 在 `core`                                                             | `LOG_SINK`、`TrackingService` 在 `shared/observability`       | data-access 也要回報，不能反向依賴 core |
+| 已處理的 API 失敗  | 未規劃                                                                                  | 以 `CatalogRequestFailed` 寫入 `LOG_SINK`                     | 人類詢問如何驗證時發現的盲點            |
+| 檔案結構           | `generate.ts`、`section-title`、`filter-bar`、`result-grid`、`gallery`、`spec-selector` | 產生器為 `seed.ts` + `fixtures/products.ts`；其餘併入頁面元件 | 兩小時內不值得拆得更細                  |
+| 刻意不做           | —                                                                                       | header 即時搜尋建議、捲動後的精簡搜尋框、SSR                  | 時間取捨，列入 README 後續方向          |
+
+### 實際時間軸（取自 git log）
+
+| 時間  | Commit                                                              |
+| ----- | ------------------------------------------------------------------- |
+| 14:53 | chore: scaffold Angular 22 project with lint, hooks and design docs |
+| 15:14 | feat(data-access): catalog models, mock API, seeded fixtures        |
+| 15:31 | feat(layout): brand theme, lazy routes, header/nav shell            |
+| 15:41 | feat(home): product card, carousel, CMS-driven home sections        |
+| 15:43 | fix(layout): pinned utility bar                                     |
+| 15:49 | feat(home): infinite-scroll recommendation feed                     |
+| 15:50 | fix(home): load-more alignment                                      |
+| 16:03 | feat(goods): product page and persistent cart store                 |
+| 16:11 | feat(layout): floating sidebar, recently viewed, cart page          |
+| 16:17 | feat(search): URL-driven search page                                |
+| 16:21 | docs: README                                                        |
+| 16:36 | feat(observability): error handler, validation, tracking            |
+| 16:41 | feat(observability): report handled request failures                |

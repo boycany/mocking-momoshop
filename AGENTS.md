@@ -45,10 +45,11 @@ Angular 22 (standalone, zoneless), Angular Material / CDK 22, @ngrx/signals 22, 
 
 ```
 src/app/
-├─ core/          # layout (header, nav, sidebar, footer), observability
+├─ core/          # layout (header, nav, sidebar, footer), routing helpers, global error handler
 ├─ data-access/   # models, CatalogApi abstraction + mock implementation, stores
-├─ features/      # home, goods, search (each a lazy route)
-└─ shared/ui/     # stateless, reusable presentational components (product-card, price, carousel, ...)
+├─ features/      # home, goods, search, cart (each a lazy route)
+├─ shared/ui/     # stateless, reusable presentational components (product-card, price, carousel, ...)
+└─ shared/observability/  # LOG_SINK and TrackingService, usable from every layer
 src/mocks/        # fixtures and generator
 ```
 
@@ -83,7 +84,7 @@ These boundaries are **enforced by ESLint** (`no-restricted-imports` in `eslint.
 ## Styling
 
 - Brand primary color: `--momo-primary: #e4007f`, defined in `src/styles.scss`.
-- Angular Material provides behavior only (sidenav, menu, snackbar, badge, autocomplete, paginator). Brand-heavy areas (header, hero banner, category nav, product card) use custom SCSS. See ADR 0001.
+- Angular Material provides behavior only. Currently used: `MatSnackBar` and the M3 theme tokens. Brand-heavy UI (header, hero banner, category nav, product card, pagination) uses custom SCSS. See ADR 0001.
 - Desktop first: content width is fixed at 1200px and centered. No responsive layout.
 - Images are local SVG placeholders. Never reference external image URLs. See ADR 0005.
 

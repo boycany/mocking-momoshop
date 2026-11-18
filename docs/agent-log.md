@@ -193,3 +193,14 @@
 - **Agent 產出**：`MockCatalogApi.respond()` 多帶 API 名稱參數，以 `tap({ error })` 統一回報失敗為 `CatalogRequestFailed`（附 `operation` 與錯誤類型）；改一處即涵蓋全部 6 支 API。`ProductNotFoundError` 屬預期中的業務結果（例如舊連結），刻意不記錄以免雜訊蓋過真正的故障。錯誤照常往下傳，畫面行為不變。
 - **做法改進**：吸取第 18 輪的教訓，這次每一處自動修改都加上斷言。測試檔的修改因 Prettier 排版不同而在斷言處停下，且因為檔案是全部比對成功後才寫入，沒有留下半套修改；改用不受排版影響的錨點後重新套用。
 - **驗證**：lint 通過；79 個測試通過（新增：失敗請求會帶 API 名稱寫入 sink、商品不存在不寫入）。README 補上這個行為並更新測試數量，表格加總與實際數量一致。
+
+### 第 20 輪：文件與實作一致性稽核
+
+- **人類指令**：確認 README 與 `docs/` 底下所有文件是否準確記載目前的實作。
+- **Agent 做法**：逐份閱讀文件，並以實際程式碼、build 結果、git log 核對，而非憑記憶判斷。
+- **發現並修正**：
+  - README：錯誤與空狀態說得過滿（分類 tab 失敗時只是不顯示）；lint 邊界說得過滿（只涵蓋 features、core、shared）；把人類的 RxJS 提問誤列為「觀察真站後的方向調整」，並補上 observability 缺口是人類提問時發現的。
+  - `AGENTS.md`：資料夾結構補上 `cart` 與 `shared/observability`；Material 實際只用 `MatSnackBar` 與主題 tokens。
+  - ADR 0001、0002、0004、0007：補記實作結果，修正與實作不符的描述（未使用的 Material 元件、`routerLink` 而非 `router.navigate`、section 為攤平物件、未知 section 在正式環境不會記錄、搜尋建議未實作）。
+  - `plan.md`：保留原始計劃以呈現演變，新增「實作結果與計劃的差異」與取自 git log 的實際時間軸。
+- **核對無誤的項目**：測試總數與各模組數字、測試檔數、初始傳輸約 86 kB、Node 版本、真站對照表各列，以及 ADR 0003、0005、0006、0008。
