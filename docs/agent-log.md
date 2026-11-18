@@ -142,3 +142,15 @@
 - **測試抓到的真實 bug**：商品不存在與網路錯誤的兩個測試失敗。原因是 Angular resource 在錯誤狀態下讀 `value()` 會丟出例外，而 Agent 在多個 `computed` 和設定標題的 `effect` 中直接讀取，導致錯誤畫面不會出現、頁面直接壞掉。修正為先以 `hasValue()` 判斷的 `loadedProduct` computed，其他地方一律經由它讀取；並檢查首頁、商品列、分類 tab 皆已正確判斷。
 - **規範更新**：這類錯誤 Agent 容易重複，因此在 `AGENTS.md` 新增「`value()` 只能在 `hasValue()` 之後讀」。
 - **驗證**：lint 通過；48 個測試通過（新增 CartStore 6、商品頁 5）。
+
+### 第 15 輪：右側浮動欄、瀏覽紀錄與購物清單頁
+
+- **人類觀察**：真站每一頁右側都有浮動欄（瀏覽紀錄、購物車、TOP）。人類指定：顯示購物車件數並可進入購物清單頁；瀏覽紀錄保留最新兩筆（之後改為三筆）；不做「簽到賺 mo 點」；加入「^ TOP」。
+- **Agent 提案並經人類同意**：瀏覽紀錄在商品頁「成功載入」時寫入，而非點擊商品卡當下。理由：涵蓋所有進入商品頁的路徑（商品卡、搜尋、瀏覽紀錄、直接貼網址），且已下架的商品不會留下點不開的紀錄。
+- **Agent 產出**：
+  - `RecentlyViewedStore`：上限常數 `RECENTLY_VIEWED_LIMIT = 3`；最新在前，重複商品移到最前；只存 id、名稱、圖片快照，浮動欄不需再呼叫 API；以 `BrowserStorage` 持久化。
+  - 商品頁以 `effect` 寫入瀏覽紀錄，`record()` 包在 `untracked` 內，避免 store 的讀寫成為 effect 的依賴而無限循環。
+  - `FloatingSidebar`：固定在 1200px 內容區右外側、窄視窗時不超出畫面；TOP 以 `ViewportScroller` 平滑捲動。
+  - `/cart` 購物清單頁（新增 `features/cart`，同步加入 ESLint feature 邊界清單）：數量、刪除、總金額、空購物車畫面；結帳以 snackbar 說明不在範圍內。工具列的購物車改為連到 `/cart`。
+- **測試抓到的畫面 bug**：購物清單頁金額顯示成 `\$2,500`。Agent 把 inline template（TS 反引號字串內需寫 `\$`）的寫法帶進外部 `.html` 檔，反斜線被原樣輸出。已移除，並確認其他 `.html` 沒有同樣問題。
+- **驗證**：lint 通過；59 個測試通過（新增 RecentlyViewedStore 4、浮動欄 3、購物清單頁 3、商品頁寫入瀏覽紀錄 1）；production build 無 budget 警告。

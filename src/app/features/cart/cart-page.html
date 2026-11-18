@@ -1,0 +1,61 @@
+<section class="page-container cart">
+  <h1>購物車</h1>
+
+  @if (cart.items().length) {
+    <table>
+      <thead>
+        <tr>
+          <th scope="col" colspan="2">商品</th>
+          <th scope="col">單價</th>
+          <th scope="col">數量</th>
+          <th scope="col">小計</th>
+          <th scope="col"><span class="visually-hidden">操作</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (item of cart.items(); track item.key) {
+          <tr>
+            <td class="thumb">
+              <a [routerLink]="['/goods', item.productId]">
+                <img [src]="item.image" [alt]="item.name" width="80" height="80" />
+              </a>
+            </td>
+            <td class="name">
+              <a [routerLink]="['/goods', item.productId]">{{ item.name }}</a>
+              @for (spec of item.specs | keyvalue; track spec.key) {
+                <span class="spec">{{ spec.key }}：{{ spec.value }}</span>
+              }
+            </td>
+            <td>${{ item.price | number }}</td>
+            <td>
+              <select
+                [attr.aria-label]="item.name + ' 數量'"
+                [value]="item.quantity"
+                (change)="onQuantityChange(item.key, $event)"
+              >
+                @for (count of quantityOptions; track count) {
+                  <option [value]="count">{{ count }}</option>
+                }
+              </select>
+            </td>
+            <td class="subtotal">${{ item.price * item.quantity | number }}</td>
+            <td>
+              <button type="button" class="remove" (click)="cart.remove(item.key)">刪除</button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+
+    <div class="summary">
+      <span>共 {{ cart.totalQuantity() }} 件商品，總金額</span>
+      <strong>${{ cart.subtotal() | number }}</strong>
+      <button type="button" class="checkout" (click)="checkout()">去結帳</button>
+    </div>
+  } @else {
+    <div class="empty">
+      <p>購物車是空的</p>
+      <a routerLink="/">去首頁逛逛</a>
+    </div>
+  }
+</section>

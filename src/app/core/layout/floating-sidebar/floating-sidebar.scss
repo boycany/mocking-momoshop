@@ -1,0 +1,67 @@
+.sidebar {
+  position: fixed;
+  top: 220px;
+  // Sit just outside the 1200px content column like the real site, but never off-screen.
+  left: min(calc(50% + 600px + 8px), calc(100% - 88px));
+  z-index: 90;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 80px;
+}
+
+.block {
+  background: #fff;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 15%);
+
+  h2 {
+    margin: 0;
+    padding: 4px 0;
+    background: #999;
+    color: #fff;
+    font-size: 13px;
+    text-align: center;
+  }
+}
+
+.viewed {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 6px 0;
+  list-style: none;
+
+  img {
+    display: block;
+  }
+}
+
+.cart {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 0;
+  background: var(--momo-primary);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border: 0;
+  background: none;
+  color: var(--momo-muted);
+  font-size: 13px;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--momo-primary);
+  }
+}

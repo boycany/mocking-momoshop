@@ -1,0 +1,41 @@
+<aside class="sidebar" aria-label="快速功能">
+  @if (recentlyViewed.items().length) {
+    <section class="block">
+      <h2>瀏覽紀錄</h2>
+      <ul class="viewed">
+        @for (item of recentlyViewed.items(); track item.id) {
+          <li>
+            <a [routerLink]="['/goods', item.id]" [title]="item.name">
+              <img [src]="item.image" [alt]="item.name" width="60" height="60" />
+            </a>
+          </li>
+        }
+      </ul>
+    </section>
+  }
+
+  <section class="block">
+    <h2>購物車</h2>
+    <a class="cart" routerLink="/cart">
+      <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+        <path
+          d="M1 2h2l1.6 8h8L14 4.5H4"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linejoin="round"
+        />
+        <circle cx="6" cy="13" r="1.2" fill="currentColor" />
+        <circle cx="12" cy="13" r="1.2" fill="currentColor" />
+      </svg>
+      結帳 ({{ cart.totalQuantity() }})
+    </a>
+  </section>
+
+  <button type="button" class="top" (click)="scrollToTop()">
+    <svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true">
+      <path d="M2.5 7.5 6 4l3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.5" />
+    </svg>
+    TOP
+  </button>
+</aside>

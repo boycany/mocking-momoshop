@@ -6,6 +6,7 @@ import { CatalogApi } from '../../data-access/catalog.api';
 import { ProductNotFoundError } from '../../data-access/catalog.errors';
 import { Product } from '../../data-access/models';
 import { CartStore } from '../../data-access/stores/cart.store';
+import { RecentlyViewedStore } from '../../data-access/stores/recently-viewed.store';
 import { GoodsPage } from './goods-page';
 
 const product: Product = {
@@ -98,9 +99,19 @@ describe('GoodsPage', () => {
     expect(snackBar.open).toHaveBeenCalledWith('已加入購物車', undefined, { duration: 2500 });
   });
 
+  it('records successfully loaded products in the viewing history', async () => {
+    await render(() => of(product));
+    expect(
+      TestBed.inject(RecentlyViewedStore)
+        .items()
+        .map((item) => item.id),
+    ).toEqual(['phone-001']);
+  });
+
   it('shows a not-found message for unknown products', async () => {
     const { element } = await render(() => throwError(() => new ProductNotFoundError('phone-001')));
     expect(element.textContent).toContain('商品已下架或不存在');
+    expect(TestBed.inject(RecentlyViewedStore).items()).toEqual([]);
   });
 
   it('offers a retry for other errors', async () => {

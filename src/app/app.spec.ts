@@ -23,6 +23,7 @@ describe('App', () => {
       'app-category-nav',
       'router-outlet',
       'app-footer',
+      'app-floating-sidebar',
     ]) {
       expect(element.querySelector(selector)).not.toBeNull();
     }

@@ -8,7 +8,7 @@ const angular = require('angular-eslint');
  * Architecture boundaries from AGENTS.md, enforced by lint instead of documentation alone.
  * Each feature may not import from any other feature.
  */
-const FEATURES = ['home', 'goods', 'search'];
+const FEATURES = ['home', 'goods', 'search', 'cart'];
 const featureBoundaries = FEATURES.map((feature) => ({
   files: [`src/app/features/${feature}/**/*.ts`],
   rules: {
@@ -18,7 +18,8 @@ const featureBoundaries = FEATURES.map((feature) => ({
         patterns: [
           {
             group: FEATURES.filter((f) => f !== feature).flatMap((f) => [`**/${f}`, `**/${f}/**`]),
-            message: 'Features must not import each other. Move shared code to shared/ or data-access/.',
+            message:
+              'Features must not import each other. Move shared code to shared/ or data-access/.',
           },
           {
             group: ['**/mocks/**'],
@@ -70,8 +71,14 @@ module.exports = defineConfig([
         'error',
         {
           patterns: [
-            { group: ['**/features/**'], message: 'core/ and shared/ must not depend on features/.' },
-            { group: ['**/mocks/**'], message: 'Only data-access may read mock fixtures. Go through CatalogApi.' },
+            {
+              group: ['**/features/**'],
+              message: 'core/ and shared/ must not depend on features/.',
+            },
+            {
+              group: ['**/mocks/**'],
+              message: 'Only data-access may read mock fixtures. Go through CatalogApi.',
+            },
           ],
         },
       ],

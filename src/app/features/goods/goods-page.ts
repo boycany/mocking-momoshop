@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, input, linkedSignal } from '@angular/core';
+import { Component, computed, effect, inject, input, linkedSignal, untracked } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Title } from '@angular/platform-browser';
@@ -6,6 +6,7 @@ import { RouterLink } from '@angular/router';
 import { CatalogApi } from '../../data-access/catalog.api';
 import { ProductNotFoundError } from '../../data-access/catalog.errors';
 import { CartStore, SelectedSpecs } from '../../data-access/stores/cart.store';
+import { RecentlyViewedStore } from '../../data-access/stores/recently-viewed.store';
 import { LoadError } from '../../shared/ui/load-error/load-error';
 import { Price } from '../../shared/ui/price/price';
 
@@ -18,6 +19,7 @@ import { Price } from '../../shared/ui/price/price';
 export class GoodsPage {
   private readonly catalog = inject(CatalogApi);
   private readonly cart = inject(CartStore);
+  private readonly recentlyViewed = inject(RecentlyViewedStore);
   private readonly snackBar = inject(MatSnackBar);
   private readonly title = inject(Title);
 
@@ -66,6 +68,14 @@ export class GoodsPage {
   );
 
   constructor() {
+    // Record only successfully loaded products, so removed items never enter the history.
+    // untracked: record() reads and writes the store, which must not become a dependency here.
+    effect(() => {
+      const product = this.loadedProduct();
+      if (product) {
+        untracked(() => this.recentlyViewed.record(product));
+      }
+    });
     effect(() => {
       const product = this.loadedProduct();
       if (product) {
