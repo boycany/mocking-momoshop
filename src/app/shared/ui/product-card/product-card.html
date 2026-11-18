@@ -1,0 +1,31 @@
+@let item = product();
+<a class="card" [routerLink]="['/goods', item.id]">
+  <img
+    class="image"
+    [src]="item.images[0]"
+    [alt]="item.name"
+    width="224"
+    height="224"
+    loading="lazy"
+  />
+  <p class="promo">{{ item.promoText ?? '' }}</p>
+  <h3 class="name">{{ item.name }}</h3>
+  <app-price [price]="item.price" [originalPrice]="item.originalPrice" />
+  <div class="rating" [attr.aria-label]="'評分 ' + item.rating">
+    <span class="stars" aria-hidden="true">
+      ★★★★★<span class="fill" [style.width.%]="ratingPercent()">★★★★★</span>
+    </span>
+    <span class="reviews">({{ item.reviewCount }})</span>
+  </div>
+  @if (fastDelivery()) {
+    <span class="fast"><b>速</b>最快今日</span>
+  }
+  @if (tags().length) {
+    <ul class="tags">
+      @for (tag of tags(); track tag.type) {
+        <li>{{ tag.label }}</li>
+      }
+    </ul>
+  }
+  <p class="sold">{{ soldLabel() }}</p>
+</a>

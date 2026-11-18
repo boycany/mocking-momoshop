@@ -4,6 +4,7 @@ import { searchProducts } from './search-products';
 const product = (overrides: Partial<Product> & Pick<Product, 'id'>): Product => ({
   name: 'Product',
   brand: 'Brand',
+  promoText: null,
   categoryId: 'appliance',
   price: 100,
   originalPrice: null,

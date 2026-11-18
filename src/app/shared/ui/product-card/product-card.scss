@@ -1,0 +1,100 @@
+:host {
+  display: block;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 14px;
+
+  &:hover .name {
+    color: var(--momo-primary);
+  }
+}
+
+.image {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  margin-bottom: 6px;
+}
+
+.promo {
+  min-height: 1.4em;
+  margin: 0;
+  color: #e60012;
+  font-size: 13px;
+}
+
+.name {
+  display: -webkit-box;
+  min-height: 2.8em;
+  margin: 0;
+  overflow: hidden;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.4;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+.rating {
+  display: flex;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--momo-muted);
+}
+
+.stars {
+  position: relative;
+  color: #ddd;
+  letter-spacing: 1px;
+
+  .fill {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    color: #f5a623;
+    white-space: nowrap;
+  }
+}
+
+.fast {
+  align-self: flex-start;
+  padding-right: 6px;
+  background: #fde6f2;
+  color: #e60012;
+  font-size: 13px;
+  font-style: italic;
+  font-weight: 700;
+
+  b {
+    margin-right: 4px;
+    padding: 0 4px;
+    background: #e60012;
+    color: #fff;
+  }
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    padding: 0 3px;
+    background: var(--momo-primary);
+    color: #fff;
+    font-size: 12px;
+  }
+}
+
+.sold {
+  margin: 0;
+  font-size: 12px;
+}

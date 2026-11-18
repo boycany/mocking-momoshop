@@ -1,0 +1,39 @@
+.carousel {
+  position: relative;
+}
+
+.track {
+  // Grid columns lay projected items out horizontally without styling them
+  // (emulated encapsulation cannot target projected content).
+  display: grid;
+  grid-auto-columns: max-content;
+  grid-auto-flow: column;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.arrow {
+  position: absolute;
+  top: 50%;
+  z-index: 1;
+  width: 32px;
+  height: 56px;
+  border: 0;
+  background: rgb(0 0 0 / 35%);
+  color: #fff;
+  font-size: 28px;
+  cursor: pointer;
+  transform: translateY(-50%);
+
+  &:disabled {
+    display: none;
+  }
+}
+
+.prev {
+  left: 0;
+}
+
+.next {
+  right: 0;
+}

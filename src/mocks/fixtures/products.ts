@@ -101,6 +101,15 @@ const TEMPLATES: Readonly<Record<string, CategoryTemplate>> = {
 };
 
 export const PRODUCTS_PER_CATEGORY = 5;
+
+const PROMO_TEXTS = [
+  '滿1000折200',
+  '滿1件享95折',
+  '7 in 1最有感晶亮配方',
+  'MOMO獨家 2026升級',
+  '雙11限定',
+  '登記抽 $999',
+];
 const BASE_DATE = Date.UTC(2026, 10, 1);
 const DAY_MS = 86_400_000;
 
@@ -130,12 +139,13 @@ export function generateProducts(seed = 20261118): Product[] {
       const [min, max] = template.priceRange;
       const price = roundPrice(min + random.next() * (max - min), random);
       const discounted = random.chance(0.65);
-      const name = `${brand} ${noun}`;
+      const name = `【${brand}】${noun}`;
 
       return {
         id: `${category.id}-${String(index + 1).padStart(3, '0')}`,
         name,
         brand,
+        promoText: random.chance(0.7) ? random.pick(PROMO_TEXTS) : null,
         categoryId: category.id,
         price,
         originalPrice: discounted ? roundPrice(price * (1.1 + random.next() * 0.5), random) : null,

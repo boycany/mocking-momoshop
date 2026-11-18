@@ -13,7 +13,8 @@
 - 真站的「今日大牌」四宮格緊鄰主視覺輪播，因此併入 `hero-carousel` 的 `todayBrand` 欄位，而非獨立 section（實作時調整）。
 - 連結以 `AppLink { commands, queryParams }` 描述，資料指向站內路由而非寫死網址。
 - `HomeSection` 使用 discriminated union，首頁元件以 `@switch (section.type)` 對應各 section 元件。
-- 首屏以下的 section 以 `@defer (on viewport)` 延遲載入。
+- 首屏以下的 section 以 `@defer (on viewport)` 延遲載入；`product-rail` 自行以 `getProductsByIds` 取商品，因此延遲的區塊在捲動到之前不會發出請求。
+- 首頁最下方新增 `product-feed`（無限捲動商品牆），由人類觀察真站互動後提出，見第 3b 步。
 
 ## 影響
 

@@ -1,0 +1,17 @@
+@if (layout.error()) {
+  <app-load-error class="page-container" message="首頁載入失敗" (retry)="layout.reload()" />
+} @else if (layout.hasValue()) {
+  @for (section of layout.value(); track section.id; let index = $index) {
+    @if (index < eagerCount) {
+      <app-home-section-host [section]="section" />
+    } @else {
+      @defer (on viewport) {
+        <app-home-section-host [section]="section" />
+      } @placeholder {
+        <div class="section-placeholder"></div>
+      }
+    }
+  }
+} @else {
+  <div class="page-container hero-skeleton"></div>
+}

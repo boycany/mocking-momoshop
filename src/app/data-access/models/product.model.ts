@@ -19,6 +19,8 @@ export interface Product {
   readonly id: string;
   readonly name: string;
   readonly brand: string;
+  /** Short red campaign line shown above the name on product cards, e.g. "滿1000折200". */
+  readonly promoText: string | null;
   readonly categoryId: string;
   /** Selling price in TWD. */
   readonly price: number;

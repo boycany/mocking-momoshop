@@ -93,3 +93,20 @@
   - footer 註明「前端面試作品，非 momo 官方網站，資料皆為模擬」，避免被誤認為真站。
 - **刻意簡化**：工具列上會員、訂單等連結以純文字呈現（不在範圍內）；購物車數量暫時寫死為 0，待 CartStore 完成後接上；熱搜字暫時寫在 header 內。
 - **驗證**：lint 通過；23 個測試通過（新增 header 3、category-nav 1，並把 Angular 預設的 app.spec 改為驗證 layout 外框）；production build 無 budget 警告，首頁初始傳輸約 69 kB，各頁面與 fixtures 皆為獨立 lazy chunk。
+
+### 第 9 輪：人類從真站觀察到無限捲動商品牆
+
+- **人類觀察**：真站首頁底部的商品牆會隨捲動自動載入，約捲動數次後出現「看更多」按鈕。人類提議實作。
+- **Agent 回應**：坦承原計劃只有橫向商品列，沒注意到這個互動；同意實作，並從人類截圖補齊商品卡細節（紅字促銷文案、【品牌】前綴、星等、「速 最快今日」標記、總銷量）。提案新增 `getRecommendations({ offset, limit })`，理由是推薦牆與搜尋在真實系統是不同服務；並建議把第 3 步拆成 3a、3b 各自 commit，讓 3b 超時時 3a 仍是可交付版本。
+- **人類修正規格**：點「看更多」後不是一次載入全部，而是重複上一輪：載入 10 筆後再自動載入兩次，再出現按鈕；商品載完時按鈕 disabled，顯示「已經沒有新商品了」。同意拆成 3a、3b。
+
+### 第 10 輪（3a）：共用元件與首頁區塊
+
+- **Agent 產出**：
+  - `Product` 新增 `promoText`；商品名改為真站的【品牌】格式。
+  - `shared/ui`：`Price`（折扣以台灣「5.7折」表示，計算抽成純函式）、`ProductCard`（依截圖補齊細節）、`ProductCardSkeleton`、`LoadError`（含重試）、`Carousel`（原生捲動 + 箭頭）。
+  - `features/home`：首頁以 `rxResource` 讀版面；前兩個區塊立即渲染，其餘 `@defer (on viewport)`；`HomeSectionHost` 以 `@switch` 分派，未知類型略過並在開發模式 `console.error`；四種區塊元件；每條商品列自行取商品並有骨架與錯誤重試。
+- **Agent 自我修正**：
+  - 輪播的子元素是投影內容，emulated 樣式封裝下 `> *` 選不到，改用 grid `grid-auto-flow: column` 排版，子元素不需額外樣式。
+  - 首頁測試第一次編譯失敗：`DeferBlockBehavior` 應從 `@angular/core/testing` 匯入，修正後通過。
+- **驗證**：lint 通過；31 個測試通過（新增 price 2、product-card 工具 1、product-card 3、home-page 2）；production build 無 budget 警告，首頁初始傳輸約 77 kB。
