@@ -125,3 +125,9 @@
   - `ProductFeed`：所有載入請求進同一個 `Subject`，以 `exhaustMap` 確保同時只有一個請求、`takeUntilDestroyed` 確保銷毀時取消。一個 `effect` 負責決定何時自動載入：首批、以及偵測元素可見且本輪還有額度時；每批載完後會重新判斷，所以偵測元素持續在畫面內時會連續載入。點「看更多」視為新一輪，計數歸零。失敗時顯示重試，重試沿用上一次的觸發類型。
 - **Agent 自我修正**：修改 `home-section.model.ts` 時，又因檔案已被 Prettier 改成多行而比對失敗（與第 7 輪同類問題），只有第一處修改生效。確認各檔實際狀態後，改以不受排版影響的 regex 比對補齊。之後修改既有檔案前，先讀取實際內容再比對。
 - **驗證**：lint 通過；37 個測試通過（新增 product-feed 5：首批不需捲動、自動載入兩次後出現按鈕、點擊開始新一輪、載完後按鈕 disabled 且不再請求、載入中不會重複請求；mock API 新增 offset 分頁 1）。jsdom 沒有 IntersectionObserver，測試以假的 observer 主動觸發可見狀態。production build 無 budget 警告。
+
+### 第 13 輪：「看更多」文字與箭頭垂直對齊
+
+- **人類回報**：「看更多」的文字和向下箭頭沒有垂直置中。
+- **原因**：`⌄` 字元的字形本身畫在字框偏下的位置，靠調整字型或行高難以穩定對齊。
+- **Agent 處理**：改用 inline SVG 箭頭（`aria-hidden`），按鈕改為 `inline-flex` + `align-items: center`，以幾何中心對齊、不依賴字型。未採用 Material Icons 字型的 `expand_more`，因為字型載入前會短暫顯示英文字。測試改為比對按鈕文字「看更多」。

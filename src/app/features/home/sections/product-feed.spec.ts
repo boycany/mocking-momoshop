@@ -101,7 +101,7 @@ describe('ProductFeed', () => {
 
     expect(cardCount()).toBe(30);
     expect(getRecommendations).toHaveBeenCalledTimes(3);
-    expect(button()?.textContent?.trim()).toBe('看更多 ⌄');
+    expect(button()?.textContent?.trim()).toBe('看更多');
     expect(button()?.disabled).toBe(false);
   });
 

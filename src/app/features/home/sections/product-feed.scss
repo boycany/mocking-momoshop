@@ -26,6 +26,11 @@ h2 {
   padding: 24px 0;
 
   button {
+    // Center the label and chevron on their geometric middle, independent of font metrics.
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
     width: 186px;
     height: 38px;
     border: 1px solid var(--momo-border);
