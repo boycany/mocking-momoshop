@@ -1,0 +1,28 @@
+<section class="page-container feed">
+  <h2>{{ section().title }}</h2>
+
+  <ul class="grid">
+    @for (product of items(); track product.id) {
+      <li><app-product-card [product]="product" /></li>
+    }
+    @if (status() === 'loading') {
+      @for (i of [1, 2, 3, 4, 5]; track i) {
+        <li><app-product-card-skeleton /></li>
+      }
+    }
+  </ul>
+
+  <div class="sentinel" (appInViewport)="onSentinelVisible($event)"></div>
+
+  @if (status() === 'error') {
+    <app-load-error message="商品載入失敗" (retry)="retry()" />
+  } @else if (showButton() && status() === 'idle') {
+    <div class="more">
+      @if (hasMore()) {
+        <button type="button" (click)="loadMore()">看更多 ⌄</button>
+      } @else {
+        <button type="button" disabled>已經沒有新商品了</button>
+      }
+    </div>
+  }
+</section>

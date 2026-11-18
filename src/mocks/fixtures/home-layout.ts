@@ -130,5 +130,12 @@ export function buildHomeLayout(products: readonly Product[]): HomeSection[] {
       productIds: idsWhere((product) => product.categoryId === 'beauty'),
       moreLink: category('beauty'),
     },
+    {
+      type: 'product-feed',
+      id: 'for-you',
+      title: '為你推薦',
+      pageSize: 10,
+      autoLoadPerRound: 2,
+    },
   ];
 }

@@ -1,5 +1,13 @@
 import { Observable } from 'rxjs';
-import { Category, HomeSection, Product, SearchQuery, SearchResult } from './models';
+import {
+  Category,
+  HomeSection,
+  Product,
+  RecommendationPage,
+  RecommendationQuery,
+  SearchQuery,
+  SearchResult,
+} from './models';
 
 /**
  * Data boundary for every page. Features depend on this abstraction only; the implementation
@@ -19,4 +27,7 @@ export abstract class CatalogApi {
   abstract getProductsByIds(ids: readonly string[]): Observable<readonly Product[]>;
 
   abstract searchProducts(query: SearchQuery): Observable<SearchResult>;
+
+  /** Personalised feed, paged by offset. `total` lets callers know when the feed is exhausted. */
+  abstract getRecommendations(query: RecommendationQuery): Observable<RecommendationPage>;
 }

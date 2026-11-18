@@ -1,6 +1,7 @@
 import { Component, effect, input, isDevMode } from '@angular/core';
 import { HomeSection, HomeSectionType } from '../../data-access/models';
 import { HeroCarousel } from './sections/hero-carousel';
+import { ProductFeed } from './sections/product-feed';
 import { ProductRail } from './sections/product-rail';
 import { PromoBanner } from './sections/promo-banner';
 import { QuickEntry } from './sections/quick-entry';
@@ -10,6 +11,7 @@ const KNOWN_TYPES: ReadonlySet<HomeSectionType> = new Set([
   'quick-entry',
   'promo-banner',
   'product-rail',
+  'product-feed',
 ]);
 
 /**
@@ -18,7 +20,7 @@ const KNOWN_TYPES: ReadonlySet<HomeSectionType> = new Set([
  */
 @Component({
   selector: 'app-home-section-host',
-  imports: [HeroCarousel, QuickEntry, PromoBanner, ProductRail],
+  imports: [HeroCarousel, QuickEntry, PromoBanner, ProductRail, ProductFeed],
   template: `
     @let data = section();
     @switch (data.type) {
@@ -33,6 +35,9 @@ const KNOWN_TYPES: ReadonlySet<HomeSectionType> = new Set([
       }
       @case ('product-rail') {
         <app-product-rail [section]="data" />
+      }
+      @case ('product-feed') {
+        <app-product-feed [section]="data" />
       }
     }
   `,

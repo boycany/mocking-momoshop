@@ -50,8 +50,22 @@ export interface ProductRailSection {
   readonly moreLink?: AppLink;
 }
 
+/** Infinite-scroll product wall at the bottom of the home page. */
+export interface ProductFeedSection {
+  readonly type: 'product-feed';
+  readonly id: string;
+  readonly title: string;
+  readonly pageSize: number;
+  /** Batches loaded automatically on scroll before the "看更多" button takes over again. */
+  readonly autoLoadPerRound: number;
+}
+
 /** Discriminated union describing the CMS-like home page layout. See ADR 0004. */
 export type HomeSection =
-  HeroCarouselSection | QuickEntrySection | PromoBannerSection | ProductRailSection;
+  | HeroCarouselSection
+  | QuickEntrySection
+  | PromoBannerSection
+  | ProductRailSection
+  | ProductFeedSection;
 
 export type HomeSectionType = HomeSection['type'];

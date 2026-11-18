@@ -64,6 +64,16 @@ describe('MockCatalogApi', () => {
     expect(categories.length).toBeGreaterThan(0);
   });
 
+  it('pages recommendations by offset and reports the total', async () => {
+    const first = await firstValueFrom(api.getRecommendations({ offset: 0, limit: 10 }));
+    const last = await firstValueFrom(api.getRecommendations({ offset: 55, limit: 10 }));
+
+    expect(first.items).toHaveLength(10);
+    expect(first.total).toBe(60);
+    expect(last.items).toHaveLength(5);
+    expect(new Set([...first.items, ...last.items].map((product) => product.id)).size).toBe(15);
+  });
+
   it('fails with CatalogNetworkError when failure is simulated', async () => {
     shouldFail = true;
     await expect(firstValueFrom(api.getCategories())).rejects.toBeInstanceOf(CatalogNetworkError);

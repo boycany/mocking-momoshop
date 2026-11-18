@@ -3,7 +3,15 @@ import { Observable, defer, map, shareReplay, switchMap, throwError, timer } fro
 import type { CatalogFixtures } from '../../mocks/fixtures';
 import { CatalogApi } from './catalog.api';
 import { CatalogNetworkError, ProductNotFoundError } from './catalog.errors';
-import { Category, HomeSection, Product, SearchQuery, SearchResult } from './models';
+import {
+  Category,
+  HomeSection,
+  Product,
+  RecommendationPage,
+  RecommendationQuery,
+  SearchQuery,
+  SearchResult,
+} from './models';
 import { searchProducts } from './search-products';
 
 export interface MockCatalogConfig {
@@ -67,6 +75,16 @@ export class MockCatalogApi extends CatalogApi {
 
   searchProducts(query: SearchQuery): Observable<SearchResult> {
     return this.respond((fixtures) => searchProducts(fixtures.products, query));
+  }
+
+  getRecommendations({ offset, limit }: RecommendationQuery): Observable<RecommendationPage> {
+    return this.respond((fixtures) => {
+      const start = Math.max(0, Math.floor(offset));
+      return {
+        items: fixtures.recommendations.slice(start, start + Math.max(0, Math.floor(limit))),
+        total: fixtures.recommendations.length,
+      };
+    });
   }
 
   private respond<T>(project: (fixtures: CatalogFixtures) => T): Observable<T> {
