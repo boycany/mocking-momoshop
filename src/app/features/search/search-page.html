@@ -1,0 +1,86 @@
+<section class="page-container search">
+  <header class="title">
+    <h1>{{ heading() }}</h1>
+    @if (results.hasValue()) {
+      <span class="count">共 {{ results.value().total }} 筆</span>
+    }
+  </header>
+
+  <nav class="sort" aria-label="排序方式">
+    @for (option of sortOptions; track option[0]) {
+      <a
+        routerLink="/search"
+        [queryParams]="{ sort: option[0] === 'relevance' ? null : option[0], page: null }"
+        queryParamsHandling="merge"
+        [class.active]="sort() === option[0]"
+        [attr.aria-current]="sort() === option[0] ? 'true' : null"
+      >
+        {{ option[1] }}
+      </a>
+    }
+  </nav>
+
+  @if (results.error()) {
+    <app-load-error message="搜尋失敗" (retry)="results.reload()" />
+  } @else if (results.hasValue()) {
+    @let result = results.value();
+    @if (result.total === 0) {
+      <div class="empty">
+        <p>查無相關商品，換個關鍵字試試：</p>
+        <ul>
+          @for (word of suggestions; track word) {
+            <li>
+              <a routerLink="/search" [queryParams]="{ keyword: word }">{{ word }}</a>
+            </li>
+          }
+        </ul>
+      </div>
+    } @else {
+      <ul class="grid">
+        @for (product of result.items; track product.id) {
+          <li><app-product-card [product]="product" /></li>
+        }
+      </ul>
+
+      @if (totalPages() > 1) {
+        <nav class="pagination" aria-label="分頁">
+          @if (result.page > 1) {
+            <a
+              routerLink="/search"
+              [queryParams]="{ page: result.page - 1 }"
+              queryParamsHandling="merge"
+              >‹</a
+            >
+          }
+          @for (pageNumber of pages(); track pageNumber) {
+            @if (pageNumber === result.page) {
+              <span class="current" aria-current="page">{{ pageNumber }}</span>
+            } @else {
+              <a
+                routerLink="/search"
+                [queryParams]="{ page: pageNumber }"
+                queryParamsHandling="merge"
+              >
+                {{ pageNumber }}
+              </a>
+            }
+          }
+          @if (result.page < totalPages()) {
+            <a
+              routerLink="/search"
+              [queryParams]="{ page: result.page + 1 }"
+              queryParamsHandling="merge"
+              >›</a
+            >
+          }
+        </nav>
+      }
+    }
+  } @else {
+    <ul class="grid">
+      @for (i of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]; track i) {
+        <li><app-product-card-skeleton /></li>
+      }
+    </ul>
+  }
+</section>

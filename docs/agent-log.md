@@ -154,3 +154,14 @@
   - `/cart` 購物清單頁（新增 `features/cart`，同步加入 ESLint feature 邊界清單）：數量、刪除、總金額、空購物車畫面；結帳以 snackbar 說明不在範圍內。工具列的購物車改為連到 `/cart`。
 - **測試抓到的畫面 bug**：購物清單頁金額顯示成 `\$2,500`。Agent 把 inline template（TS 反引號字串內需寫 `\$`）的寫法帶進外部 `.html` 檔，反斜線被原樣輸出。已移除，並確認其他 `.html` 沒有同樣問題。
 - **驗證**：lint 通過；59 個測試通過（新增 RecentlyViewedStore 4、浮動欄 3、購物清單頁 3、商品頁寫入瀏覽紀錄 1）；production build 無 budget 警告。
+
+### 第 16 輪：搜尋頁
+
+- **Agent 產出**：
+  - `search-params.ts`：`parseSort`、`parsePage` 把網址上不合法的值修正為預設值；`pageWindow` 產生以目前頁為中心的頁碼範圍。皆為純函式並各自測試。
+  - 搜尋頁的 `keyword`、`categoryId`、`sort`、`page` 全部由 query params 綁定成 input（`sort`、`page` 以 input transform 修正），組成 `computed` 查詢條件後交給 `rxResource`；網址一變就重新查詢，並取消上一個請求。
+  - 排序與頁碼都是帶 `queryParamsHandling="merge"` 的 `routerLink`，是真正的連結，可另開分頁或分享；換排序時把 `page` 設為 null 以回到第 1 頁，選「綜合排序」時也移除 `sort`，讓預設狀態的網址保持乾淨。
+  - 頁碼採數字頁碼而非 Material paginator，因為後者的「1–20 of 60」樣式與真站差異大（ADR 0001 的取捨）。
+  - 查無結果時提供建議關鍵字；載入中顯示骨架卡，失敗時可重試。
+  - 全站開啟 `withInMemoryScrolling({ scrollPositionRestoration: 'enabled' })`：修正從首頁底部點進商品頁時仍停在原捲動位置的問題，上一頁則回到原位置。
+- **驗證**：lint 通過；69 個測試通過（新增 search params 4、搜尋頁 6）；production build 無 budget 警告。
